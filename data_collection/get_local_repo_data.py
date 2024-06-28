@@ -1,7 +1,7 @@
 import json
 import logging
 import pathlib
-import git  # pip package gitpython
+import git
 from datetime import datetime
 
 

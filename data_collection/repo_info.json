@@ -1,0 +1,95 @@
+{
+  "bitcoin": [
+    {
+      "owner": "bitcoin",
+      "name": "bitcoin",
+      "branch": "master"
+    }
+  ],
+  "bitcoin_cash": [
+    {
+      "owner": "bitcoin-cash-node",
+      "name": "bitcoin-cash-node",
+      "branch": "master"
+    },
+    {
+      "owner": "gcash",
+      "name": "bchd",
+      "branch": "master"
+    },
+    {
+      "owner": "SoftwareVerde",
+      "name": "bitcoin-verde",
+      "branch": "master"
+    }
+  ],
+  "cardano": [
+      {
+      "owner": "IntersectMBO",
+      "name": "cardano-node",
+      "branch": "master"
+      }
+  ],
+  "ethereum": [
+      {
+      "owner": "ethereum",
+      "name": "go-ethereum",
+      "branch": "master"
+      },
+      {
+      "owner": "NethermindEth",
+      "name": "nethermind",
+      "branch": "master"
+      },
+    {
+      "owner": "ledgerwatch",
+      "name": "erigon",
+      "branch": "main"
+    },
+    {
+      "owner": "hyperledger",
+      "name": "besu",
+      "branch": "main"
+    },
+    {
+      "owner": "paradigmxyz",
+      "name": "reth",
+      "branch": "main"
+    }
+  ],
+    "litecoin": [
+        {
+        "owner": "litecoin-project",
+        "name": "litecoin",
+        "branch": "master"
+        }
+    ],
+    "polkadot": [
+        {
+        "owner": "paritytech",
+        "name": "polkadot-sdk",
+        "branch": "master"
+        }
+    ],
+  "solana": [
+    {
+      "owner": "solana-labs",
+      "name": "solana",
+      "branch": "master"
+    }
+  ],
+  "tezos": [
+    {
+      "owner": "tezos",
+      "name": "tezos-mirror",
+      "branch": "master"
+    }
+  ],
+  "zcash": [
+    {
+      "owner": "zcash",
+      "name": "zcash",
+      "branch": "master"
+    }
+  ]
+}

@@ -35,13 +35,23 @@ def collect_commit_data(repo_name, repo_dir, branch, filepath):
             }
             commits_list.append(commit_dict)
 
-        commits_list.extend(existing_commits)
-        assert len(commits_list) - existing_commits_num == new_commits_num
+    commits_list.extend(existing_commits)
+    assert len(commits_list) - existing_commits_num == new_commits_num
 
+    if new_commits_num > 0:
         with open(filepath, 'w') as f:
             json.dump(commits_list, f, indent=4)
 
     logging.info(f'Collected {new_commits_num} new commits. Total commits saved: {len(commits_list)}')
+
+
+def pull_repo(repo_url, local_repo_dir):
+    try:
+        git_repo = git.Repo.clone_from(repo_url, local_repo_dir)
+    except git.exc.GitCommandError:
+        git_repo = git.Repo(local_repo_dir)
+        git_repo.remotes.origin.pull()
+    return git_repo
 
 
 if __name__ == '__main__':
@@ -54,17 +64,13 @@ if __name__ == '__main__':
     for ledger, ledger_repos in repo_info.items():
         for repo in ledger_repos:
             repo_name = repo['name']
+
             local_repo_dir = data_collection_path / f'repos/{ledger}/{repo_name}'
             local_repo_dir.mkdir(exist_ok=True, parents=True)
             repo_url = f'https://github.com/{repo["owner"]}/{repo_name}.git'
-
             logging.info(f'Cloning {repo_name} ({ledger}) repository (or pulling latest changes if repository already '
                          f'cloned)...')
-            try:
-                git.Repo.clone_from(repo_url, local_repo_dir)
-            except git.exc.GitCommandError:
-                git_repo = git.Repo(local_repo_dir)
-                git_repo.remotes.origin.pull()
+            pull_repo(repo_url, local_repo_dir)
 
             commit_data_dir = data_collection_path / 'commit_data' / ledger
             commit_data_dir.mkdir(exist_ok=True, parents=True)

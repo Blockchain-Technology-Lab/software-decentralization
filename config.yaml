@@ -1,0 +1,37 @@
+repositories:
+  bitcoin:
+    - bitcoin
+  bitcoin_cash:
+    - bchd
+    - bitcoin-cash-node
+    - bitcoin-verde
+  cardano:
+    - cardano-node
+  ethereum:
+    - besu
+    - erigon
+    - go-ethereum
+    - nethermind
+    - reth
+  litecoin:
+    - litecoin
+  polkadot:
+    - polkadot-sdk
+  solana:
+    - solana
+  tezos:
+    - tezos-mirror
+  zcash:
+    - zcash
+
+metrics:
+  - entropy
+  - gini
+  - hhi
+  - nakamoto_coefficient
+  - theil_index
+  - max_power_ratio
+  - total_entities
+
+# The granularity for the analysis. It corresponds to the number of commits that will be included in each sample window.
+granularity: 100

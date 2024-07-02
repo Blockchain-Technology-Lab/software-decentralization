@@ -55,7 +55,7 @@ def pull_repo(repo_url, local_repo_dir):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
     data_collection_path = pathlib.Path(__file__).parent
 
     with open(data_collection_path / 'repo_info.json') as f:

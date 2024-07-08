@@ -172,15 +172,12 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
     plt.savefig(filepath, bbox_inches='tight')
 
 
-def plot():
-    ledger_repos = hlp.get_ledger_repos()
-    metrics = hlp.get_metrics()
-    granularity = hlp.get_granularity()
-    commits_per_entity_dir = pathlib.Path(f'output/commits_per_entity_{granularity}')
-    metrics_dir = pathlib.Path('output/metrics')
-    dynamics_figures_dir = pathlib.Path('output/figures/dynamics')
+def plot(ledger_repos, metrics, granularity, entity_type):
+    commits_per_entity_dir = pathlib.Path(f'output/per_{entity_type}/commits_per_entity_{granularity}')
+    metrics_dir = pathlib.Path(f'output/per_{entity_type}/metrics')
+    dynamics_figures_dir = pathlib.Path(f'output/per_{entity_type}/figures/dynamics')
     dynamics_figures_dir.mkdir(parents=True, exist_ok=True)
-    metrics_figures_dir = pathlib.Path('output/figures/metrics')
+    metrics_figures_dir = pathlib.Path(f'output/per_{entity_type}/figures/metrics')
     metrics_figures_dir.mkdir(parents=True, exist_ok=True)
 
     logging.info("Plotting dynamics for each repo..")
@@ -192,4 +189,9 @@ def plot():
 
 if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
-    plot()
+    ledger_repos = hlp.get_ledger_repos()
+    metrics = hlp.get_metrics()
+    granularity = hlp.get_granularity()
+    entity_types = hlp.get_entity_types()
+    for entity_type in entity_types:
+        plot(ledger_repos, metrics, granularity, entity_type)

@@ -44,6 +44,15 @@ def get_granularity():
     return config['granularity']
 
 
+def get_entity_types():
+    """
+    Retrieves the list of entity types that will be considered in the analysis.
+    :returns: a list of strings, each corresponding to an entity type
+    """
+    config = get_config_data()
+    return config['entity_types']
+
+
 def write_commits_per_entity_to_file(commits_per_entity, sample_windows, filepath):
     """
     Produces a csv file with information about the resources (blocks) that each entity controlled over some timeframe.

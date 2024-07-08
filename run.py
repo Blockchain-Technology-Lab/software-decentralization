@@ -8,11 +8,10 @@ import pandas as pd
 from plot import plot
 
 
-def aggregate(ledger_repos):
-    granularity = hlp.get_granularity()
-    output_dir = pathlib.Path(f'output/commits_per_entity_{granularity}')
+def aggregate(ledger_repos, granularity, entity_type):
+    output_dir = pathlib.Path(f'output/per_{entity_type}/commits_per_entity_{granularity}')
+    output_dir.mkdir(parents=True, exist_ok=True)
     for ledger, repos in ledger_repos.items():
-        output_dir.mkdir(parents=True, exist_ok=True)
         for repo in repos:
             logging.info(f'Processing {repo}...')
             with open(f'data_collection/commit_data/{ledger}/{repo}_repo_commits.json') as f:
@@ -29,15 +28,13 @@ def aggregate(ledger_repos):
             hlp.write_commits_per_entity_to_file(commits_per_entity, list(sample_windows), output_dir / f'{ledger}_{repo}_commits_per_entity.csv')
 
 
-def run_metrics(ledger_repos):
+def run_metrics(ledger_repos, metrics, granularity, entity_type):
     logging.info('Calculating metrics...')
-    granularity = hlp.get_granularity()
-    output_dir = pathlib.Path(f'output')
+    output_dir = pathlib.Path(f'output/per_{entity_type}')
     commits_per_entity_dir = output_dir / f'commits_per_entity_{granularity}'
     metrics_dir = output_dir / 'metrics'
     metrics_dir.mkdir(parents=True, exist_ok=True)
 
-    metrics = hlp.get_metrics()
     repos = [f'{ledger}_{repo}' for ledger, repos in ledger_repos.items() for repo in repos]
     metric_dfs = {metric: pd.DataFrame() for metric in metrics}
     for repo in repos:
@@ -60,6 +57,10 @@ def run_metrics(ledger_repos):
 if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
     ledger_repos = hlp.get_ledger_repos()
-    aggregate(ledger_repos)
-    run_metrics(ledger_repos)
-    plot()
+    metrics = hlp.get_metrics()
+    granularity = hlp.get_granularity()
+    entity_types = hlp.get_entity_types()
+    for entity_type in entity_types:
+        aggregate(ledger_repos, granularity, entity_type)
+        run_metrics(ledger_repos, metrics, granularity, entity_type)
+        plot(ledger_repos, metrics, granularity, entity_type)

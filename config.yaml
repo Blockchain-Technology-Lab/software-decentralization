@@ -35,3 +35,7 @@ metrics:
 
 # The granularity for the analysis. It corresponds to the number of commits that will be included in each sample window.
 granularity: 100
+
+entity_types:
+  - author
+  - committer

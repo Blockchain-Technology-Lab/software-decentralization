@@ -45,6 +45,8 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type):
                 sample_commits_per_entity = {}
                 for entity, commit_values in commits_per_entity.items():
                     sample_commits_per_entity[entity] = commit_values[sample_idx]
+                # Remove entities with no commits in the sample window
+                sample_commits_per_entity = {k: v for k, v in sample_commits_per_entity.items() if v > 0}
                 sorted_sample_commits = sorted(sample_commits_per_entity.values(), reverse=True)
                 func = eval(f'compute_{metric}')
                 metric_repo_results[sample_idx] = func(sorted_sample_commits)

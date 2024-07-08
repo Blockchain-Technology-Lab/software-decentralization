@@ -116,7 +116,7 @@ def compute_total_entities(commit_distribution):
     :param circulation: int, the total amount of tokens in circulation
     :returns: int that represents the total number of entities in the given distribution
     """
-    return len([commits for commits in commit_distribution if commits > 0])
+    return len(commit_distribution)
 
 
 def compute_max_power_ratio(commit_distribution):

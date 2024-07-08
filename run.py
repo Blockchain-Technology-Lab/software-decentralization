@@ -8,8 +8,8 @@ import pandas as pd
 from plot import plot
 
 
-def aggregate(ledger_repos, granularity, entity_type):
-    output_dir = pathlib.Path(f'output/per_{entity_type}/commits_per_entity_{granularity}')
+def aggregate(ledger_repos, granularity, entity_type, weight_type):
+    output_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/commits_per_entity_{granularity}')
     output_dir.mkdir(parents=True, exist_ok=True)
     for ledger, repos in ledger_repos.items():
         for repo in repos:
@@ -24,13 +24,26 @@ def aggregate(ledger_repos, granularity, entity_type):
                 sample_window_idx = i // granularity
                 sample_windows.add(sample_window_idx)
                 committer = commit['author_name']
-                commits_per_entity[committer][sample_window_idx] = commits_per_entity[committer].get(sample_window_idx, 0) + 1
+                commits_per_entity[committer][sample_window_idx] = commits_per_entity[committer].get(sample_window_idx, 0) + get_weight_from_commit(commit, weight_type)
             hlp.write_commits_per_entity_to_file(commits_per_entity, list(sample_windows), output_dir / f'{ledger}_{repo}_commits_per_entity.csv')
 
 
-def run_metrics(ledger_repos, metrics, granularity, entity_type):
+def get_weight_from_commit(commit, weight_type):
+    if weight_type == 'number_of_commits':
+        return 1
+    elif weight_type == 'lines_added':
+        return commit['lines_added']
+    elif weight_type == 'lines_deleted':
+        return commit['lines_deleted']
+    elif weight_type == 'total_lines':
+        return commit['lines_added'] + commit['lines_deleted']
+    else:
+        raise ValueError(f'Invalid weight type: {weight_type}')
+
+
+def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
     logging.info('Calculating metrics...')
-    output_dir = pathlib.Path(f'output/per_{entity_type}')
+    output_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}')
     commits_per_entity_dir = output_dir / f'commits_per_entity_{granularity}'
     metrics_dir = output_dir / 'metrics'
     metrics_dir.mkdir(parents=True, exist_ok=True)
@@ -62,7 +75,11 @@ if __name__ == '__main__':
     metrics = hlp.get_metrics()
     granularity = hlp.get_granularity()
     entity_types = hlp.get_entity_types()
-    for entity_type in entity_types:
-        aggregate(ledger_repos, granularity, entity_type)
-        run_metrics(ledger_repos, metrics, granularity, entity_type)
-        plot(ledger_repos, metrics, granularity, entity_type)
+    weight_types = hlp.get_weight_types()
+    for weight_type in weight_types:
+        logging.info(f'Processing by weight type: {weight_type}')
+        for entity_type in entity_types:
+            logging.info(f'Processing per entity type: {entity_type}')
+            aggregate(ledger_repos, granularity, entity_type, weight_type)
+            run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type)
+            plot(ledger_repos, metrics, granularity, entity_type, weight_type)

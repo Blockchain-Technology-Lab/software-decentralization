@@ -53,6 +53,15 @@ def get_entity_types():
     return config['entity_types']
 
 
+def get_weight_types():
+    """
+    Retrieves the weight types that will be used for the analysis (e.g. number of commits).
+    :returns: a list of strings, each corresponding to a weight type
+    """
+    config = get_config_data()
+    return config['weight_types']
+
+
 def write_commits_per_entity_to_file(commits_per_entity, sample_windows, filepath):
     """
     Produces a csv file with information about the resources (blocks) that each entity controlled over some timeframe.

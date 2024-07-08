@@ -172,12 +172,12 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
     plt.savefig(filepath, bbox_inches='tight')
 
 
-def plot(ledger_repos, metrics, granularity, entity_type):
-    commits_per_entity_dir = pathlib.Path(f'output/per_{entity_type}/commits_per_entity_{granularity}')
-    metrics_dir = pathlib.Path(f'output/per_{entity_type}/metrics')
-    dynamics_figures_dir = pathlib.Path(f'output/per_{entity_type}/figures/dynamics')
+def plot(ledger_repos, metrics, granularity, entity_type, weight_type):
+    commits_per_entity_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/commits_per_entity_{granularity}')
+    metrics_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/metrics')
+    dynamics_figures_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/figures/dynamics')
     dynamics_figures_dir.mkdir(parents=True, exist_ok=True)
-    metrics_figures_dir = pathlib.Path(f'output/per_{entity_type}/figures/metrics')
+    metrics_figures_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/figures/metrics')
     metrics_figures_dir.mkdir(parents=True, exist_ok=True)
 
     logging.info("Plotting dynamics for each repo..")
@@ -193,5 +193,9 @@ if __name__ == '__main__':
     metrics = hlp.get_metrics()
     granularity = hlp.get_granularity()
     entity_types = hlp.get_entity_types()
-    for entity_type in entity_types:
-        plot(ledger_repos, metrics, granularity, entity_type)
+    weight_types = hlp.get_weight_types()
+    for weight_type in weight_types:
+        logging.info(f'Plotting by weight type: {weight_type}')
+        for entity_type in entity_types:
+            logging.info(f'Plotting per entity type: {entity_type}')
+            plot(ledger_repos, metrics, granularity, entity_type, weight_type)

@@ -39,3 +39,9 @@ granularity: 100
 entity_types:
   - author
   - committer
+
+weight_types:
+  - number_of_commits
+  - lines_added
+  - lines_deleted
+  - total_lines

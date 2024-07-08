@@ -116,7 +116,7 @@ def compute_total_entities(block_distribution):
     :param circulation: int, the total amount of tokens in circulation
     :returns: int that represents the total number of entities in the given distribution
     """
-    return len(block_distribution)
+    return len([blocks for blocks in block_distribution if blocks > 0])
 
 
 def compute_max_power_ratio(block_distribution):

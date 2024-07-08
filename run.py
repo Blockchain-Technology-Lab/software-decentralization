@@ -5,6 +5,7 @@ import helper as hlp
 import pathlib
 from metrics import *  # noqa
 import pandas as pd
+from plot import plot
 
 
 def aggregate(ledger_repos):
@@ -61,3 +62,4 @@ if __name__ == '__main__':
     ledger_repos = hlp.get_ledger_repos()
     aggregate(ledger_repos)
     run_metrics(ledger_repos)
+    plot()

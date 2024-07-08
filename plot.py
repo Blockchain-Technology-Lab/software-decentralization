@@ -172,8 +172,7 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
     plt.savefig(filepath, bbox_inches='tight')
 
 
-if __name__ == '__main__':
-    logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
+def plot():
     ledger_repos = hlp.get_ledger_repos()
     metrics = hlp.get_metrics()
     granularity = hlp.get_granularity()
@@ -184,7 +183,13 @@ if __name__ == '__main__':
     metrics_figures_dir = pathlib.Path('output/figures/metrics')
     metrics_figures_dir.mkdir(parents=True, exist_ok=True)
 
-    # logging.info("Plotting dynamics for each repo..")
-    # plot_dynamics(ledger_repos=ledger_repos, data_dir=commits_per_entity_dir, figures_dir=dynamics_figures_dir, legend=True)
+    logging.info("Plotting dynamics for each repo..")
+    plot_dynamics(ledger_repos=ledger_repos, data_dir=commits_per_entity_dir, figures_dir=dynamics_figures_dir, legend=True)
     logging.info("Plotting metrics..")
-    plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, data_dir=metrics_dir, figures_dir=metrics_figures_dir)
+    plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, data_dir=metrics_dir,
+                             figures_dir=metrics_figures_dir)
+
+
+if __name__ == '__main__':
+    logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
+    plot()

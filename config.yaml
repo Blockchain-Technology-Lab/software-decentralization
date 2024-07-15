@@ -2,17 +2,17 @@ repositories:
   bitcoin:
     - bitcoin
   bitcoin_cash:
-    - bchd
+#    - bchd
     - bitcoin-cash-node
-    - bitcoin-verde
+#    - bitcoin-verde
   cardano:
     - cardano-node
   ethereum:
-    - besu
-    - erigon
+#    - besu
+#    - erigon
     - go-ethereum
-    - nethermind
-    - reth
+#    - nethermind
+#    - reth
   litecoin:
     - litecoin
   polkadot:
@@ -34,7 +34,7 @@ metrics:
   - total_entities
 
 # The granularity for the analysis. It corresponds to the number of commits that will be included in each sample window.
-granularity: 100
+granularity: 500
 
 entity_types:
   - author

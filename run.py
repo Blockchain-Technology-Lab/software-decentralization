@@ -19,13 +19,16 @@ def aggregate(ledger_repos, granularity, entity_type, weight_type):
 
             # aggregate commits by granularity
             commits_per_entity = defaultdict(dict)
-            sample_windows = set()
-            for i, commit in enumerate(commits):
+            sample_window_timestamps = defaultdict(list)
+            for i, commit in enumerate(reversed(commits)):
                 sample_window_idx = i // granularity
-                sample_windows.add(sample_window_idx)
-                committer = commit['author_name']
-                commits_per_entity[committer][sample_window_idx] = commits_per_entity[committer].get(sample_window_idx, 0) + get_weight_from_commit(commit, weight_type)
-            hlp.write_commits_per_entity_to_file(commits_per_entity, list(sample_windows), output_dir / f'{ledger}_{repo}_commits_per_entity.csv')
+                sample_window_timestamps[sample_window_idx].append(commit[f'{entity_type}_timestamp'])
+                entity = commit[f'{entity_type}_name']
+                commits_per_entity[entity][sample_window_idx] = commits_per_entity[entity].get(sample_window_idx, 0) + get_weight_from_commit(commit, weight_type)
+            mean_timestamps = {idx: pd.to_datetime(timestamps).mean().date() for idx, timestamps in
+                               sample_window_timestamps.items()}
+            filename = f'{repo}_commits_per_entity.csv'
+            hlp.write_commits_per_entity_to_file(commits_per_entity, mean_timestamps, output_dir / filename)
 
 
 def get_weight_from_commit(commit, weight_type):
@@ -42,27 +45,37 @@ def get_weight_from_commit(commit, weight_type):
 
 
 def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
+    """
+    Calculates metrics for the distribution in each sample window.
+    Saves the results in a csv file in the 'output' directory.
+    :param ledger_repos: dictionary with ledger names as keys and lists of repository names as values
+    :param metrics: list of metric names
+    :param granularity: int that represents the number of commits per sample window
+    :param entity_type: string with the type of entity to consider in the analysis (author or committer)
+    :param weight_type: string with the type of weight to consider in the analysis (number_of_commits, lines_added,
+    lines_deleted, or total_lines)
+    """
     logging.info('Calculating metrics...')
     output_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}')
     commits_per_entity_dir = output_dir / f'commits_per_entity_{granularity}'
     metrics_dir = output_dir / 'metrics'
     metrics_dir.mkdir(parents=True, exist_ok=True)
 
-    repos = [f'{ledger}_{repo}' for ledger, repos in ledger_repos.items() for repo in repos]
+    repos = [repo for repos in ledger_repos.values() for repo in repos]
     metric_dfs = {metric: pd.DataFrame() for metric in metrics}
     for repo in repos:
         sample_windows, commits_per_entity = hlp.get_blocks_per_entity_from_file(commits_per_entity_dir / f'{repo}_commits_per_entity.csv')
         for metric in metrics:
             metric_repo_results = {}
-            for sample_idx in sample_windows:
+            for sample_window in sample_windows:
                 sample_commits_per_entity = {}
                 for entity, commit_values in commits_per_entity.items():
-                    sample_commits_per_entity[entity] = commit_values[sample_idx]
+                    sample_commits_per_entity[entity] = commit_values[sample_window]
                 # Remove entities with no commits in the sample window
                 sample_commits_per_entity = {k: v for k, v in sample_commits_per_entity.items() if v > 0}
                 sorted_sample_commits = sorted(sample_commits_per_entity.values(), reverse=True)
                 func = eval(f'compute_{metric}')
-                metric_repo_results[sample_idx] = func(sorted_sample_commits)
+                metric_repo_results[sample_window] = func(sorted_sample_commits)
             metric_df_repo = pd.DataFrame.from_dict(metric_repo_results, orient='index', columns=[repo])
             metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
     for metric in metrics:

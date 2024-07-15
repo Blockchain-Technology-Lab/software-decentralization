@@ -25,10 +25,10 @@ def collect_commit_data(repo_name, repo_dir, branch, filepath):
                 'hash': commit.hexsha,
                 'author_name': commit.author.name,
                 'author_email': commit.author.email,
-                'timestamp_authored': str(datetime.fromtimestamp(commit.authored_date)),
+                'author_timestamp': str(datetime.fromtimestamp(commit.authored_date)),
                 'committer_name': commit.committer.name,
                 'committer_email': commit.committer.email,
-                'timestamp_committed': str(datetime.fromtimestamp(commit.committed_date)),
+                'committer_timestamp': str(datetime.fromtimestamp(commit.committed_date)),
                 'message': commit.message,
                 'lines_added': commit.stats.total['insertions'],
                 'lines_deleted': commit.stats.total['deletions']

@@ -62,24 +62,27 @@ def get_weight_types():
     return config['weight_types']
 
 
-def write_commits_per_entity_to_file(commits_per_entity, sample_windows, filepath):
+def write_commits_per_entity_to_file(commits_per_entity, mean_timestamps, filepath):
     """
     Produces a csv file with information about the resources (blocks) that each entity controlled over some timeframe.
     The entries are sorted so that the entities that controlled the most resources appear first.
     :param output_dir: pathlib.PosixPath object of the output directory where the produced csv file is written to.
     :param commits_per_entity: a dictionary with entities as keys and lists as values, where each list represents the
         number of commits authored by the entity in each sample window
-    :param sample_windows: a list of strings corresponding to the sample windows that were analyzed
+    :param mean_timestamps: a dictionary with sample window ids as keys and the mean timestamp of the commits in that
+        sample window as values
     :param filepath: pathlib path to be used for the produced file.
     """
     with open(filepath, 'w', newline='') as f:
+        sample_windows = mean_timestamps.keys()
         csv_writer = csv.writer(f)
-        csv_writer.writerow(['Entity \\ Time period'] + sample_windows)  # write header
-        for entity, commits_per_chunk in commits_per_entity.items():
+        timestamps = list(mean_timestamps.values())
+        csv_writer.writerow(['Entity \\ Time'] + timestamps)  # write header
+        for entity, entity_commits in commits_per_entity.items():
             entity_row = [entity]
-            for chunk in sample_windows:
+            for sample_window in sample_windows:
                 try:
-                    entity_row.append(commits_per_chunk[chunk])
+                    entity_row.append(entity_commits[sample_window])
                 except KeyError:
                     entity_row.append(0)
             csv_writer.writerow(entity_row)
@@ -90,16 +93,17 @@ def get_blocks_per_entity_from_file(filepath):
     Retrieves information about the number of blocks that each entity produced over some timeframe for some project.
     :param filepath: the path to the file with the relevant information. It can be either an absolute or a relative
     path in either a pathlib.PosixPath object or a string.
-    :returns: a tuple of length 2 where the first item is a list of sample window ids (strings) and the second item is a
-    dictionary with entities (keys) and a list of the number of commits they contributed during each sample window (values)
+    :returns: a tuple of length 2 where the first item is a list of strings each representing the mean timestamp of a
+    sample window and the second item is a dictionary with entities (keys) and a list of the number of commits they
+    contributed during each sample window (values)
     """
     commits_per_entity = defaultdict(dict)
     with open(filepath, newline='') as f:
         csv_reader = csv.reader(f)
         header = next(csv_reader, None)
-        sample_windows = [int(i) for i in header[1:]]
+        sample_windows = header[1:]
         for row in csv_reader:
             entity = row[0]
             for idx, item in enumerate(row[1:]):
-                commits_per_entity[entity][sample_windows[idx]] = int(item)
+                commits_per_entity[entity][sample_windows[idx]] = int(item)  # todo issue if we have two sample windows with the same timestamp?
     return sample_windows, commits_per_entity

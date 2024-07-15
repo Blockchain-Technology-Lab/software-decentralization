@@ -8,19 +8,20 @@ import pandas as pd
 import helper as hlp
 
 
-def plot_lines(data, x_label, y_label, filepath, xtick_labels, colors, title=''):
-    data.plot(figsize=(10, 6), color=colors)
+def plot_lines(data_df, x_label, y_label, filepath, xtick_labels, colors, title=''):
+    plt.figure(figsize=(10, 6))
+    for i, col in enumerate(data_df.columns):
+        plot_data = data_df[col].dropna()
+        plt.plot(plot_data.index.values, plot_data.values, label=col, color=colors[i], marker='o')
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
-    plt.legend(frameon=False)
+    # plt.legend(frameon=False)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=3, fancybox=True, shadow=True)
+    xtick_labels = xtick_labels.iloc[::25]  # only keep every 25th xtick
     plt.xticks(ticks=xtick_labels.index, labels=xtick_labels, rotation=45)
-    locs, x_labels = plt.xticks()
-    for i, label in enumerate(x_labels):
-        if i % 5 == 0:  # only keep every 5th xtick label
-            continue
-        label.set_visible(False)
     plt.savefig(filepath, bbox_inches='tight')
+    plt.close()
 
 
 def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tick_labels, legend):
@@ -35,12 +36,12 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
     col = sns.color_palette(cc.glasbey, n_colors=num_entities)
     plt.stackplot(range(num_time_steps), values, colors=col, edgecolor='face', linewidth=0.0001, labels=legend_labels)
     plt.margins(0)
-    plt.xlabel("Time")
+    plt.xlabel("Sample")
     plt.ylabel(ylabel)
     plt.xticks(ticks=range(num_time_steps), labels=tick_labels, rotation=45)
     locs, x_labels = plt.xticks()
     for i, label in enumerate(x_labels):
-        if i % 5 == 0:  # only keep every 5th xtick label
+        if i % 10 == 0:  # only keep every 10th xtick label
             continue
         label.set_visible(False)
     if legend:
@@ -67,25 +68,25 @@ def plot_dynamics(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative'
     """
     for ledger, repos in ledger_repos.items():
         for repo in repos:
-            filename = f"{ledger}_{repo}_commits_per_entity.csv"
-            time_chunks, blocks_per_entity = hlp.get_blocks_per_entity_from_file(filepath=data_dir / filename)
+            filename = f"{repo}_commits_per_entity.csv"
+            sample_windows, blocks_per_entity = hlp.get_blocks_per_entity_from_file(filepath=data_dir / filename)
 
-            total_blocks_per_time_chunk = [0] * len(time_chunks)
+            total_blocks_per_sample_window = [0] * len(sample_windows)
             for entity, block_values in blocks_per_entity.items():
-                for time_chunk, nblocks in block_values.items():
-                    total_blocks_per_time_chunk[time_chunks.index(time_chunk)] += nblocks
+                for sample_window, nblocks in block_values.items():
+                    total_blocks_per_sample_window[sample_windows.index(sample_window)] += nblocks
 
-            total_blocks_per_time_chunk = np.array(total_blocks_per_time_chunk)
-            nonzero_idx = total_blocks_per_time_chunk.nonzero()[0]  # only keep time chunks with at least one block
-            total_blocks_per_time_chunk = total_blocks_per_time_chunk[nonzero_idx]
-            time_chunks = [time_chunks[i] for i in nonzero_idx]
+            total_blocks_per_sample_window = np.array(total_blocks_per_sample_window)
+            nonzero_idx = total_blocks_per_sample_window.nonzero()[0]  # only keep time chunks with at least one block
+            total_blocks_per_sample_window = total_blocks_per_sample_window[nonzero_idx]
+            sample_windows = [sample_windows[i] for i in nonzero_idx]
 
             blocks_array = []
             for entity, block_values in blocks_per_entity.items():
                 entity_array = []
-                for time_chunk in time_chunks:
+                for sample_window in sample_windows:
                     try:
-                        entity_array.append(block_values[time_chunk])
+                        entity_array.append(block_values[sample_window])
                     except KeyError:
                         entity_array.append(0)
                 blocks_array.append(entity_array)
@@ -93,14 +94,14 @@ def plot_dynamics(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative'
             blocks_array = np.array(blocks_array)
 
             if unit == 'relative':
-                block_shares_array = blocks_array / total_blocks_per_time_chunk * 100
+                block_shares_array = blocks_array / total_blocks_per_sample_window * 100
                 values = block_shares_array
                 ylabel = 'Share of commits (%)'
-                legend_threshold = 0 * total_blocks_per_time_chunk + 5  # only show in the legend contributors that have a contribution of at least 5% in some sample window
+                legend_threshold = 0 * total_blocks_per_sample_window + 5  # only show in the legend contributors that have a contribution of at least 5% in some sample window
             else:
                 values = blocks_array
                 ylabel = 'Number of commits'
-                legend_threshold = 0.05 * total_blocks_per_time_chunk
+                legend_threshold = 0.05 * total_blocks_per_sample_window
             max_values_per_contributor = values.max(axis=1)
             labels = [
                 f"{entity_name if len(entity_name) <= 15 else entity_name[:15] + '..'}"
@@ -116,17 +117,17 @@ def plot_dynamics(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative'
 
             plot_stack_area_chart(
                 values=values,
-                execution_id=f'{ledger}_{repo}_{unit}_values_top_{top_k}' if top_k > 0 else f'{ledger}_{repo}_{unit}_values_all',
+                execution_id=f'{repo}_{unit}_values_top_{top_k}' if top_k > 0 else f'{repo}_{unit}_values_all',
                 path=figures_dir,
                 ylabel=ylabel,
                 legend_labels=labels,
-                tick_labels=time_chunks,
+                tick_labels=sample_windows,
                 legend=legend
             )
 
 
 def plot_comparative_metrics(ledger_repos, metrics, data_dir, figures_dir):
-    repos = [f'{ledger}_{repo}' for ledger, repos in ledger_repos.items() for repo in repos]
+    repos = [repo for repos in ledger_repos.values() for repo in repos]
     for metric in metrics:
         filename = f'{metric}.csv'
         metric_df = pd.read_csv(data_dir / filename)
@@ -139,7 +140,7 @@ def plot_comparative_metrics(ledger_repos, metrics, data_dir, figures_dir):
             index = metric_df['sample']
             metric_df = metric_df[repo_columns_to_keep]
             plot_lines(
-                data=metric_df,
+                data_df=metric_df,
                 x_label='Sample',
                 y_label=metric,
                 filepath=figures_dir / f"{metric}.png",
@@ -181,7 +182,8 @@ def plot(ledger_repos, metrics, granularity, entity_type, weight_type):
     metrics_figures_dir.mkdir(parents=True, exist_ok=True)
 
     logging.info("Plotting dynamics for each repo..")
-    plot_dynamics(ledger_repos=ledger_repos, data_dir=commits_per_entity_dir, figures_dir=dynamics_figures_dir, legend=True)
+    plot_dynamics(ledger_repos=ledger_repos, data_dir=commits_per_entity_dir, figures_dir=dynamics_figures_dir,
+                  legend=False)
     logging.info("Plotting metrics..")
     plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, data_dir=metrics_dir,
                              figures_dir=metrics_figures_dir)

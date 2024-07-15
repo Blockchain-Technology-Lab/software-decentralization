@@ -2,15 +2,14 @@ import json
 import logging
 from collections import defaultdict
 import helper as hlp
-import pathlib
 from metrics import *  # noqa
 import pandas as pd
 from plot import plot
 
 
 def aggregate(ledger_repos, granularity, entity_type, weight_type):
-    output_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/commits_per_entity_{granularity}')
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = hlp.get_output_dir(output_type='data', weight_type=weight_type, entity_type=entity_type,
+                                    granularity=granularity, data_type='commits_per_entity', mkdir=True)
     for ledger, repos in ledger_repos.items():
         for repo in repos:
             logging.info(f'Processing {repo}...')
@@ -56,15 +55,15 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
     lines_deleted, or total_lines)
     """
     logging.info('Calculating metrics...')
-    output_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}')
-    commits_per_entity_dir = output_dir / f'commits_per_entity_{granularity}'
-    metrics_dir = output_dir / 'metrics'
-    metrics_dir.mkdir(parents=True, exist_ok=True)
+    commits_per_entity_data_dir = hlp.get_output_dir(output_type='data', weight_type=weight_type,
+                                                     entity_type=entity_type, granularity=granularity, data_type='commits_per_entity')
+    metrics_data_dir = hlp.get_output_dir(output_type='data', weight_type=weight_type, entity_type=entity_type,
+                                          granularity=granularity, data_type='metrics', mkdir=True)
 
     repos = [repo for repos in ledger_repos.values() for repo in repos]
     metric_dfs = {metric: pd.DataFrame() for metric in metrics}
     for repo in repos:
-        sample_windows, commits_per_entity = hlp.get_blocks_per_entity_from_file(commits_per_entity_dir / f'{repo}_commits_per_entity.csv')
+        sample_windows, commits_per_entity = hlp.get_blocks_per_entity_from_file(commits_per_entity_data_dir / f'{repo}_commits_per_entity.csv')
         for metric in metrics:
             metric_repo_results = {}
             for sample_window in sample_windows:
@@ -79,7 +78,7 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
             metric_df_repo = pd.DataFrame.from_dict(metric_repo_results, orient='index', columns=[repo])
             metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
     for metric in metrics:
-        metric_dfs[metric].to_csv(metrics_dir / f'{metric}.csv', index_label='sample')
+        metric_dfs[metric].to_csv(metrics_data_dir / f'{metric}.csv', index_label='sample')
 
 
 if __name__ == '__main__':

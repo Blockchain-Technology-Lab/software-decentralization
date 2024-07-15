@@ -1,4 +1,5 @@
 import csv
+import pathlib
 from collections import defaultdict
 from yaml import safe_load
 
@@ -60,6 +61,24 @@ def get_weight_types():
     """
     config = get_config_data()
     return config['weight_types']
+
+
+def get_output_dir(output_type, weight_type, entity_type, granularity, data_type, mkdir=False):
+    """
+    Determines the output directory where the produced files will be saved.
+    :param output_type: either "data" or "figures"
+    :param weight_type: one of the weight types from config.yaml (e.g. number_of_commits)
+    :param entity_type: one of the entity types from config.yaml (e.g. author)
+    :param granularity: the number of commits per sample window used in the analysis
+    :param data_type: either "commits_per_entity" or "metrics"
+    :param mkdir: boolean that determines whether the output directory should be created if it does not exist
+    :returns: a pathlib.PosixPath object of the output directory
+    """
+    output_dir = pathlib.Path(f'output/{output_type}/by_{weight_type}/per_{entity_type}/per_{granularity}_commits'
+                              f'/{data_type}')
+    if mkdir:
+        output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
 
 
 def write_commits_per_entity_to_file(commits_per_entity, mean_timestamps, filepath):

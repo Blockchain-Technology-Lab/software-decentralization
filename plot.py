@@ -1,4 +1,3 @@
-import pathlib
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
@@ -16,7 +15,6 @@ def plot_lines(data_df, x_label, y_label, filepath, xtick_labels, colors, title=
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
-    # plt.legend(frameon=False)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=3, fancybox=True, shadow=True)
     xtick_labels = xtick_labels.iloc[::25]  # only keep every 25th xtick
     plt.xticks(ticks=xtick_labels.index, labels=xtick_labels, rotation=45)
@@ -52,7 +50,7 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
             ncols = len(visible_legend_labels) // (max_labels_per_column + 1) + 1
             fig.legend(loc='upper right', bbox_to_anchor=(0.9, -0.1), ncol=ncols, fancybox=True, borderpad=0.2,
                        labelspacing=0.3, handlelength=1)
-    filename = "dynamics-" + execution_id + ".png"
+    filename = execution_id + ".png"
     plt.savefig(path / filename, bbox_inches='tight')
     plt.close(fig)
 
@@ -174,18 +172,16 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
 
 
 def plot(ledger_repos, metrics, granularity, entity_type, weight_type):
-    commits_per_entity_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/commits_per_entity_{granularity}')
-    metrics_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/metrics')
-    dynamics_figures_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/figures/dynamics')
-    dynamics_figures_dir.mkdir(parents=True, exist_ok=True)
-    metrics_figures_dir = pathlib.Path(f'output/by_{weight_type}/per_{entity_type}/figures/metrics')
-    metrics_figures_dir.mkdir(parents=True, exist_ok=True)
+    commits_per_entity_data_dir = hlp.get_output_dir(output_type='data', weight_type=weight_type, entity_type=entity_type, granularity=granularity, data_type='commits_per_entity')
+    metrics_data_dir = hlp.get_output_dir(output_type='data', weight_type=weight_type, entity_type=entity_type, granularity=granularity, data_type='metrics')
+    dynamics_figures_dir = hlp.get_output_dir(output_type='figures', weight_type=weight_type, entity_type=entity_type, granularity=granularity, data_type='dynamics', mkdir=True)
+    metrics_figures_dir = hlp.get_output_dir(output_type='figures', weight_type=weight_type, entity_type=entity_type, granularity=granularity, data_type='metrics', mkdir=True)
 
     logging.info("Plotting dynamics for each repo..")
-    plot_dynamics(ledger_repos=ledger_repos, data_dir=commits_per_entity_dir, figures_dir=dynamics_figures_dir,
+    plot_dynamics(ledger_repos=ledger_repos, data_dir=commits_per_entity_data_dir, figures_dir=dynamics_figures_dir,
                   legend=False)
     logging.info("Plotting metrics..")
-    plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, data_dir=metrics_dir,
+    plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, data_dir=metrics_data_dir,
                              figures_dir=metrics_figures_dir)
 
 

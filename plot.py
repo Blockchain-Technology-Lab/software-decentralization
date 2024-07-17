@@ -34,7 +34,7 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
     col = sns.color_palette(cc.glasbey, n_colors=num_entities)
     plt.stackplot(range(num_time_steps), values, colors=col, edgecolor='face', linewidth=0.0001, labels=legend_labels)
     plt.margins(0)
-    plt.xlabel("Sample")
+    plt.xlabel("Time")
     plt.ylabel(ylabel)
     plt.xticks(ticks=range(num_time_steps), labels=tick_labels, rotation=45)
     locs, x_labels = plt.xticks()
@@ -139,7 +139,7 @@ def plot_comparative_metrics(ledger_repos, metrics, data_dir, figures_dir):
             metric_df = metric_df[repo_columns_to_keep]
             plot_lines(
                 data_df=metric_df,
-                x_label='Sample',
+                x_label='Time',
                 y_label=metric,
                 filepath=figures_dir / f"{metric}.png",
                 xtick_labels=index,

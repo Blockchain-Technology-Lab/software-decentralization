@@ -162,6 +162,10 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
     """
     fig, ax = plt.subplots()
     plt.title(title)
+
+    # sort the data_dict by values in descending order
+    data_dict = dict(sorted(data_dict.items(), key=lambda x: x[1], reverse=True))
+
     labels = [(f'{label[:15]}...' if len(label) > 15 else label) for label in data_dict.keys()]
     wedges, texts = ax.pie(data_dict.values(), wedgeprops=dict(width=0.5), startangle=0)
 

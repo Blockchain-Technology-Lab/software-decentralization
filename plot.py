@@ -55,7 +55,7 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
     plt.close(fig)
 
 
-def plot_dynamics(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative', legend=False):
+def plot_commit_distribution(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative', legend=False):
     """
     Plots the dynamics for each repository in terms of commit contribution
     :param ledger_repos: dictionary that contains the repositories for each ledger
@@ -113,15 +113,20 @@ def plot_dynamics(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative'
                 values = values[top_k_idx]
                 labels = [labels[i] for i in top_k_idx]
 
-            plot_stack_area_chart(
-                values=values,
-                execution_id=f'{repo}_{unit}_values_top_{top_k}' if top_k > 0 else f'{repo}_{unit}_values_all',
-                path=figures_dir,
-                ylabel=ylabel,
-                legend_labels=labels,
-                tick_labels=sample_windows,
-                legend=legend
-            )
+            if values.shape[1] > 1:  # only plot stack area chart if there is more than one time step
+                plot_stack_area_chart(
+                    values=values,
+                    execution_id=f'{repo}_{unit}_values_top_{top_k}' if top_k > 0 else f'{repo}_{unit}_values_all',
+                    path=figures_dir,
+                    ylabel=ylabel,
+                    legend_labels=labels,
+                    tick_labels=sample_windows,
+                    legend=legend
+                )
+            else:
+                # if there is only one time step, plot a doughnut chart
+                data_dict = {label: value[0] for label, value in zip(labels, values)}
+                plot_doughnut_chart(data_dict, filepath=figures_dir / f'{repo}_doughnut_chart.png')
 
 
 def plot_comparative_metrics(ledger_repos, metrics, data_dir, figures_dir):
@@ -148,6 +153,13 @@ def plot_comparative_metrics(ledger_repos, metrics, data_dir, figures_dir):
 
 
 def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.png'):
+    """
+    Plots a doughnut chart with the data provided in the data_dict and saves it in a png file.
+    :param data_dict: dictionary with the data to be plotted. The keys are the labels and the values are the values to be
+    plotted.
+    :param title: optional title for the plot
+    :param filepath: the path where the plot will be saved
+    """
     fig, ax = plt.subplots()
     plt.title(title)
     labels = [(f'{label[:15]}...' if len(label) > 15 else label) for label in data_dict.keys()]
@@ -177,9 +189,9 @@ def plot(ledger_repos, metrics, granularity, entity_type, weight_type):
     dynamics_figures_dir = hlp.get_output_dir(output_type='figures', weight_type=weight_type, entity_type=entity_type, granularity=granularity, data_type='dynamics', mkdir=True)
     metrics_figures_dir = hlp.get_output_dir(output_type='figures', weight_type=weight_type, entity_type=entity_type, granularity=granularity, data_type='metrics', mkdir=True)
 
-    logging.info("Plotting dynamics for each repo..")
-    plot_dynamics(ledger_repos=ledger_repos, data_dir=commits_per_entity_data_dir, figures_dir=dynamics_figures_dir,
-                  legend=False)
+    logging.info("Plotting commit distributions for each repo..")
+    plot_commit_distribution(ledger_repos=ledger_repos, data_dir=commits_per_entity_data_dir, figures_dir=dynamics_figures_dir,
+                             legend=False)
     logging.info("Plotting metrics..")
     plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, data_dir=metrics_data_dir,
                              figures_dir=metrics_figures_dir)

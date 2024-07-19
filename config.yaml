@@ -34,6 +34,7 @@ metrics:
   - total_entities
 
 # The granularity for the analysis. It corresponds to the number of commits that will be included in each sample window.
+# If empty, then the entire history of the repository will be considered as a single sample window.
 granularity: 500
 
 entity_types:

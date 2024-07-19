@@ -20,7 +20,7 @@ def aggregate(ledger_repos, granularity, entity_type, weight_type):
             commits_per_entity = defaultdict(dict)
             sample_window_timestamps = defaultdict(list)
             for i, commit in enumerate(reversed(commits)):
-                sample_window_idx = i // granularity
+                sample_window_idx = i // granularity if granularity else 0
                 sample_window_timestamps[sample_window_idx].append(commit[f'{entity_type}_timestamp'])
                 entity = commit[f'{entity_type}_name']
                 commits_per_entity[entity][sample_window_idx] = commits_per_entity[entity].get(sample_window_idx, 0) + get_weight_from_commit(commit, weight_type)

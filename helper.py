@@ -1,9 +1,11 @@
 import csv
+import logging
 import pathlib
 from collections import defaultdict
 from yaml import safe_load
 
 
+logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 with open("config.yaml") as f:
     config = safe_load(f)
 
@@ -24,7 +26,12 @@ def get_ledger_repos():
     repository names.
     """
     config = get_config_data()
-    return config['repositories']
+    try:
+        repos = config['repositories']
+    except KeyError:
+        repos = {}
+        logging.warning('No repositories found in config.yaml. No data will be collected / analyzed.')
+    return repos
 
 
 def get_metrics():
@@ -33,7 +40,12 @@ def get_metrics():
     :returns: a list of strings, each corresponding to a metric
     """
     config = get_config_data()
-    return config['metrics']
+    try:
+        metrics = config['metrics']
+    except KeyError:
+        metrics = []
+        logging.warning('No metrics found in config.yaml. No metrics will be calculated.')
+    return metrics
 
 
 def get_granularity():
@@ -42,7 +54,13 @@ def get_granularity():
     :returns: a number that corresponds to the granularity (number of commits per sample window) that will be used.
     """
     config = get_config_data()
-    return config['granularity']
+    try:
+        granularity = config['granularity']
+    except KeyError:
+        granularity = None
+        logging.warning('No granularity found in config.yaml. Defaulting to no granularity (using entire history as '
+                        'a single sample).')
+    return granularity
 
 
 def get_entity_types():
@@ -51,7 +69,12 @@ def get_entity_types():
     :returns: a list of strings, each corresponding to an entity type
     """
     config = get_config_data()
-    return config['entity_types']
+    try:
+        entity_types = config['entity_types']
+    except KeyError:
+        entity_types = []
+        logging.warning('No entity types found in config.yaml.')
+    return entity_types
 
 
 def get_weight_types():
@@ -60,7 +83,12 @@ def get_weight_types():
     :returns: a list of strings, each corresponding to a weight type
     """
     config = get_config_data()
-    return config['weight_types']
+    try:
+        weight_types = config['weight_types']
+    except KeyError:
+        weight_types = []
+        logging.warning('No weight types found in config.yaml.')
+    return weight_types
 
 
 def get_output_dir(output_type, weight_type, entity_type, granularity, data_type, mkdir=False):

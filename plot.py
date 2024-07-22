@@ -205,7 +205,7 @@ if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
     ledger_repos = hlp.get_ledger_repos()
     metrics = hlp.get_metrics()
-    granularity = hlp.get_granularity()
+    granularity = hlp.get_granularities()
     entity_types = hlp.get_entity_types()
     weight_types = hlp.get_weight_types()
     for weight_type in weight_types:

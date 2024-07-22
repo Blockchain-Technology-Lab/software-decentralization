@@ -11,7 +11,7 @@ repositories:
 #    - besu
 #    - erigon
     - go-ethereum
-#    - nethermind
+    - nethermind
 #    - reth
   litecoin:
     - litecoin
@@ -33,9 +33,15 @@ metrics:
   - max_power_ratio
   - total_entities
 
-# The granularity for the analysis. It corresponds to the number of commits that will be included in each sample window.
+# A list of the granularities to be used in the analysis. It corresponds to the number of commits that will be
+#  included in each sample window.
 # If empty, then the entire history of the repository will be considered as a single sample window.
-granularity: 500
+granularities:
+  -
+  - 100
+  - 250
+  - 500
+  - 1000
 
 entity_types:
   - author

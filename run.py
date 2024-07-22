@@ -78,20 +78,22 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
             metric_df_repo = pd.DataFrame.from_dict(metric_repo_results, orient='index', columns=[repo])
             metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
     for metric in metrics:
-        metric_dfs[metric].to_csv(metrics_data_dir / f'{metric}.csv', index_label='sample')
+        metric_dfs[metric].to_csv(metrics_data_dir / f'{metric}.csv', index_label='time')
 
 
 if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
     ledger_repos = hlp.get_ledger_repos()
     metrics = hlp.get_metrics()
-    granularity = hlp.get_granularity()
+    granularities = hlp.get_granularities()
     entity_types = hlp.get_entity_types()
     weight_types = hlp.get_weight_types()
     for weight_type in weight_types:
         logging.info(f'Processing by weight type: {weight_type}')
         for entity_type in entity_types:
             logging.info(f'Processing per entity type: {entity_type}')
-            aggregate(ledger_repos, granularity, entity_type, weight_type)
-            run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type)
-            plot(ledger_repos, metrics, granularity, entity_type, weight_type)
+            for granularity in granularities:
+                logging.info(f'Processing with granularity (number of commits per sample window): {granularity}')
+                aggregate(ledger_repos, granularity, entity_type, weight_type)
+                run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type)
+                plot(ledger_repos, metrics, granularity, entity_type, weight_type)

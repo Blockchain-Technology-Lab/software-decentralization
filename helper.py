@@ -48,19 +48,20 @@ def get_metrics():
     return metrics
 
 
-def get_granularity():
+def get_granularities():
     """
-    Retrieves the granularity that will be used for the analysis.
-    :returns: a number that corresponds to the granularity (number of commits per sample window) that will be used.
+    Retrieves the granularities that will be used for the analysis.
+    :returns: a list of numbers that corresponds to the granularity (number of commits per sample window) that will be
+    used in the analysis. If no granularity is found in the configuration file, it returns [None].
     """
     config = get_config_data()
     try:
-        granularity = config['granularity']
+        granularities = config['granularities']
     except KeyError:
-        granularity = None
+        granularities = [None]
         logging.warning('No granularity found in config.yaml. Defaulting to no granularity (using entire history as '
                         'a single sample).')
-    return granularity
+    return granularities
 
 
 def get_entity_types():

@@ -36,6 +36,8 @@ def get_weight_from_commit(commit, weight_type):
         return commit['lines_deleted']
     elif weight_type == 'lines_changed':
         return commit['lines_added'] + commit['lines_deleted']
+    elif weight_type == 'number_of_merge_commits':
+        return 1 if commit['message'].startswith('Merge') else 0
     else:
         raise ValueError(f'Invalid weight type: {weight_type}')
 
@@ -81,8 +83,8 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
                 metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
             for sample_window in sample_windows:
                 all_metrics_df = all_metrics_df.append({'repo': repo, 'date': sample_window, **{metric: value for metric, value in zip(metrics, sample_window_results[sample_window])}}, ignore_index=True)
-    # for metric in metrics:
-    #     metric_dfs[metric].to_csv(metrics_data_dir / f'{metric}.csv', index_label='date')
+    for metric in metrics:
+        metric_dfs[metric].to_csv(metrics_data_dir / f'{metric}.csv', index_label='date')
     all_metrics_df.to_csv(f'output/data/all_metrics_by_{weight_type}_per_{entity_type}_per_{granularity}_commits.csv',
                           index=False, date_format='%Y%m%d')
 

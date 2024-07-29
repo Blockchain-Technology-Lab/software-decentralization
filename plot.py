@@ -140,7 +140,7 @@ def plot_comparative_metrics(ledger_repos, metrics, data_dir, figures_dir):
         num_lines = metric_df.shape[1]
         colors = sns.color_palette(cc.glasbey, n_colors=num_lines)
         if len(repo_columns_to_keep) > 0:
-            index = metric_df['sample']
+            index = metric_df['date']
             metric_df = metric_df[repo_columns_to_keep]
             plot_lines(
                 data_df=metric_df,

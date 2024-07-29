@@ -37,7 +37,7 @@ def get_weight_from_commit(commit, weight_type):
         return commit['lines_added']
     elif weight_type == 'lines_deleted':
         return commit['lines_deleted']
-    elif weight_type == 'total_lines':
+    elif weight_type == 'lines_changed':
         return commit['lines_added'] + commit['lines_deleted']
     else:
         raise ValueError(f'Invalid weight type: {weight_type}')
@@ -52,7 +52,7 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
     :param granularity: int that represents the number of commits per sample window
     :param entity_type: string with the type of entity to consider in the analysis (author or committer)
     :param weight_type: string with the type of weight to consider in the analysis (number_of_commits, lines_added,
-    lines_deleted, or total_lines)
+    lines_deleted, or lines_changed)
     """
     logging.info('Calculating metrics...')
     commits_per_entity_data_dir = hlp.get_output_dir(output_type='data', weight_type=weight_type,
@@ -62,23 +62,32 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
 
     repos = [repo for repos in ledger_repos.values() for repo in repos]
     metric_dfs = {metric: pd.DataFrame() for metric in metrics}
+    all_metrics_df = pd.DataFrame(columns=['repo', 'date'] + metrics)
     for repo in repos:
         sample_windows, commits_per_entity = hlp.get_blocks_per_entity_from_file(commits_per_entity_data_dir / f'{repo}_commits_per_entity.csv')
-        for metric in metrics:
-            metric_repo_results = {}
+        if len(sample_windows) > 1:
+            sample_window_results = defaultdict(list)
+            for metric in metrics:
+                metric_repo_results = {}
+                for sample_window in sample_windows:
+                    sample_commits_per_entity = {}
+                    for entity, commit_values in commits_per_entity.items():
+                        sample_commits_per_entity[entity] = commit_values[sample_window]
+                    # Remove entities with no commits in the sample window
+                    sample_commits_per_entity = {k: v for k, v in sample_commits_per_entity.items() if v > 0}
+                    sorted_sample_commits = sorted(sample_commits_per_entity.values(), reverse=True)
+                    func = eval(f'compute_{metric}')
+                    metric_repo_results[sample_window] = func(sorted_sample_commits)
+                    sample_window_results[sample_window].append(metric_repo_results[sample_window])
+
+                metric_df_repo = pd.DataFrame.from_dict(metric_repo_results, orient='index', columns=[repo])
+                metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
             for sample_window in sample_windows:
-                sample_commits_per_entity = {}
-                for entity, commit_values in commits_per_entity.items():
-                    sample_commits_per_entity[entity] = commit_values[sample_window]
-                # Remove entities with no commits in the sample window
-                sample_commits_per_entity = {k: v for k, v in sample_commits_per_entity.items() if v > 0}
-                sorted_sample_commits = sorted(sample_commits_per_entity.values(), reverse=True)
-                func = eval(f'compute_{metric}')
-                metric_repo_results[sample_window] = func(sorted_sample_commits)
-            metric_df_repo = pd.DataFrame.from_dict(metric_repo_results, orient='index', columns=[repo])
-            metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
-    for metric in metrics:
-        metric_dfs[metric].to_csv(metrics_data_dir / f'{metric}.csv', index_label='time')
+                all_metrics_df = all_metrics_df.append({'repo': repo, 'date': sample_window, **{metric: value for metric, value in zip(metrics, sample_window_results[sample_window])}}, ignore_index=True)
+    # for metric in metrics:
+    #     metric_dfs[metric].to_csv(metrics_data_dir / f'{metric}.csv', index_label='date')
+    all_metrics_df.to_csv(f'output/data/all_metrics_by_{weight_type}_per_{entity_type}_per_{granularity}_commits.csv',
+                          index=False, date_format='%Y%m%d')
 
 
 if __name__ == '__main__':

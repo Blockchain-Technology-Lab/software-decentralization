@@ -1,4 +1,5 @@
 import csv
+import json
 import logging
 import pathlib
 from collections import defaultdict
@@ -108,6 +109,19 @@ def get_output_dir(output_type, weight_type, entity_type, granularity, data_type
     if mkdir:
         output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
+
+
+def read_commit_data(ledger, repo):
+    """
+    Reads the raw commit data for some repository associated with some ledger.
+    :param ledger: string with the name of the ledger
+    :param repo: string with the name of the repository
+    :returns: a list of dictionaries, each representing a commit
+    """
+    filepath = pathlib.Path(f'data_collection/commit_data/{ledger}/{repo}_repo_commits.json')
+    with open(filepath) as f:
+        commits = json.load(f)  # sorted commits
+    return commits
 
 
 def write_commits_per_entity_to_file(commits_per_entity, mean_timestamps, filepath):

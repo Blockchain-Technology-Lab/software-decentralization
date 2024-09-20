@@ -1,10 +1,10 @@
-import json
 import logging
 from collections import defaultdict
 import helper as hlp
 from metrics import *  # noqa
 import pandas as pd
 from plot import plot
+from data_collection.collect_commit_data import fetch_data
 
 
 def aggregate(ledger, repo, granularity, entity_type, weight_type):
@@ -85,9 +85,8 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
 
                 metric_df_repo = pd.DataFrame.from_dict(metric_repo_results, orient='index', columns=[repo])
                 metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
-            all_metrics_rows.extend(
-                [[repo, sample_windows[sample_window_id]] + results for sample_window_id, results in
-                 sample_window_results.items()])
+            all_metrics_rows.extend([[repo, sample_windows[sample_window_id]] + results for sample_window_id, results in
+                                     sample_window_results.items()])
     if all_metrics_rows:
         all_metrics_df = pd.DataFrame(all_metrics_rows, columns=['ledger', 'date'] + metrics)
         all_metrics_df.to_csv(metrics_data_dir / 'all_metrics.csv', index=False, date_format='%Y%m%d')
@@ -95,7 +94,12 @@ def run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type):
 
 if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
+
     ledger_repos = hlp.get_ledger_repos()
+    refresh_data_flag = hlp.get_refresh_data_flag()
+    fetch_data(repos=[(ledger, repo) for ledger in ledger_repos for repo in ledger_repos[ledger]],
+               update_existing=refresh_data_flag)
+
     metrics = hlp.get_metrics()
     granularities = hlp.get_granularities()
     entity_types = hlp.get_entity_types()
@@ -109,6 +113,5 @@ if __name__ == '__main__':
                 for ledger, repos in ledger_repos.items():
                     for repo in repos:
                         aggregate(ledger, repo, granularity, entity_type, weight_type)
-                run_metrics(ledger_repos, metrics, granularity, entity_type,
-                            weight_type)
+                run_metrics(ledger_repos, metrics, granularity, entity_type, weight_type)
                 plot(ledger_repos, metrics, granularity, entity_type, weight_type)

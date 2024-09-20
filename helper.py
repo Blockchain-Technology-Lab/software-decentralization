@@ -93,6 +93,20 @@ def get_weight_types():
     return weight_types
 
 
+def get_refresh_data_flag():
+    """
+    Retrieves the flag that determines whether the commit data should be refreshed or not.
+    :returns: a boolean that determines whether the data should be refreshed or not
+    """
+    config = get_config_data()
+    try:
+        refresh_data_flag = config['refresh_data']
+    except KeyError:
+        refresh_data_flag = False
+        logging.warning('No refresh_data flag found in config.yaml. Defaulting to False.')
+    return refresh_data_flag
+
+
 def get_output_dir(output_type, weight_type, entity_type, granularity, data_type, mkdir=False):
     """
     Determines the output directory where the produced files will be saved.

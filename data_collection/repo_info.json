@@ -1,95 +1,80 @@
 {
-  "bitcoin": [
-    {
+  "bitcoin": {
+    "bitcoin": {
       "owner": "bitcoin",
-      "name": "bitcoin",
       "branch": "master"
     }
-  ],
-  "bitcoin_cash": [
-    {
+  },
+  "bitcoin_cash": {
+    "bitcoin-cash-node": {
       "owner": "bitcoin-cash-node",
-      "name": "bitcoin-cash-node",
       "branch": "master"
     },
-    {
+    "bchd": {
       "owner": "gcash",
-      "name": "bchd",
       "branch": "master"
     },
-    {
+    "bitcoin-verde": {
       "owner": "SoftwareVerde",
-      "name": "bitcoin-verde",
       "branch": "master"
     }
-  ],
-  "cardano": [
-      {
+  },
+  "cardano": {
+    "cardano-node": {
       "owner": "IntersectMBO",
-      "name": "cardano-node",
       "branch": "master"
-      }
-  ],
-  "ethereum": [
-      {
+    }
+  },
+  "ethereum": {
+    "go-ethereum": {
       "owner": "ethereum",
-      "name": "go-ethereum",
       "branch": "master"
-      },
-      {
+    },
+    "nethermind": {
       "owner": "NethermindEth",
-      "name": "nethermind",
       "branch": "master"
-      },
-    {
+    },
+    "erigon": {
       "owner": "ledgerwatch",
-      "name": "erigon",
       "branch": "main"
     },
-    {
+    "besu": {
       "owner": "hyperledger",
-      "name": "besu",
       "branch": "main"
     },
-    {
+    "reth": {
       "owner": "paradigmxyz",
-      "name": "reth",
       "branch": "main"
     }
-  ],
-    "litecoin": [
-        {
+  },
+    "litecoin": {
+        "litecoin": {
         "owner": "litecoin-project",
-        "name": "litecoin",
         "branch": "master"
         }
-    ],
-    "polkadot": [
-        {
-        "owner": "paritytech",
-        "name": "polkadot-sdk",
-        "branch": "master"
-        }
-    ],
-  "solana": [
-    {
+    },
+   "polkadot": {
+    "polkadot-sdk": {
+      "owner": "paritytech",
+      "branch": "master"
+    }
+  },
+  "solana": {
+    "solana": {
       "owner": "solana-labs",
-      "name": "solana",
       "branch": "master"
     }
-  ],
-  "tezos": [
-    {
+  },
+  "tezos": {
+    "tezos-mirror": {
       "owner": "tezos",
-      "name": "tezos-mirror",
       "branch": "master"
     }
-  ],
-  "zcash": [
-    {
+  },
+  "zcash": {
+    "zcash": {
       "owner": "zcash",
-      "name": "zcash",
       "branch": "master"
     }
-  ]
+  }
 }

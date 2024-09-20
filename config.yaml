@@ -53,3 +53,9 @@ weight_types:
   - number_of_commits
   - lines_changed
   - number_of_merge_commits
+
+
+# Flag to indicate if new commit data should be pulled from the repositories.
+# Note that this is only relevant for some repository if it already exists locally.
+# If a repository does not exist locally, then it will be cloned and commit data will be pulled regardless of this flag.
+refresh_data: false

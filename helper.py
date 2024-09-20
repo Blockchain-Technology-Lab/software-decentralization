@@ -169,5 +169,5 @@ def get_blocks_per_entity_from_file(filepath):
         for row in csv_reader:
             entity = row[0]
             for idx, item in enumerate(row[1:]):
-                commits_per_entity[entity][sample_windows[idx]] = int(item)  # todo issue if we have two sample windows with the same timestamp?
+                commits_per_entity[entity][idx] = int(item)
     return sample_windows, commits_per_entity

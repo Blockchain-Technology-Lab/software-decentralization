@@ -9,7 +9,7 @@ def compute_nakamoto_coefficient(commit_distribution):
 def compute_tau_index(commit_distribution, threshold):
     """
     Calculates the tau-decentralization index of a distribution of commits
-    :param commit_distribution: a list of integers, each being the commits that an entity has produced, sorted in descending order
+    :param commit_distribution: a list of integers, each being the commits that a contributor has produced, sorted in descending order
     :param threshold: float, the parameter of the tau-decentralization index, i.e. the threshold for the power
     ratio that is captured by the index (e.g. 0.66 for 66%)
     :returns: int that corresponds to the tau index of the given distribution, or None if there were no commits
@@ -29,7 +29,7 @@ def compute_tau_index(commit_distribution, threshold):
 def compute_gini(commit_distribution):
     """
     Calculates the Gini coefficient of a distribution of commits to entities
-    :param commit_distribution: a list of integers, each being the commits that an entity has produced, sorted in descending order
+    :param commit_distribution: a list of integers, each being the commits that a contributor has produced, sorted in descending order
     :returns: a float that represents the Gini coefficient of the given distribution or None if the data is empty
     """
     if sum(commit_distribution) == 0:
@@ -63,7 +63,7 @@ def compute_herfindahl_hirschman_index(commit_distribution):
     concentrated market. The U.S. Department of Justice considers a market with an HHI of less than 1,500 to be a
     competitive marketplace, an HHI of 1,500 to 2,500 to be a moderately concentrated marketplace,
     and an HHI of 2,500 or greater to be a highly concentrated marketplace.
-    :param commit_distribution: a list of integers, each being the commits that an entity has produced, sorted in descending order
+    :param commit_distribution: a list of integers, each being the commits that a contributor has produced, sorted in descending order
     :return: float between 0 and 10,000 that represents the HHI of the given distribution or None if the data is empty
     """
     total_commits = sum(commit_distribution)
@@ -84,7 +84,7 @@ def compute_entropy(commit_distribution, alpha=1):
     Renyi entropy: 1/(1-alpha) * log2 (sum (Pi**alpha))
     Shannon entropy (alpha=1): −sum P(Si) log2 (Pi)
     Min entropy (alpha=-1): -log max Pi
-    :param commit_distribution: a list of integers, each being the commits that an entity has produced, sorted in descending order
+    :param commit_distribution: a list of integers, each being the commits that a contributor has produced, sorted in descending order
     :param alpha: the entropy parameter (depending on its value the corresponding entropy measure is used)
     :returns: a float that represents the entropy of the data or None if the data is empty
     """
@@ -109,11 +109,10 @@ def compute_entropy(commit_distribution, alpha=1):
     return entropy
 
 
-def compute_total_entities(commit_distribution):
+def compute_total_contributors(commit_distribution):
     """
-    Calculates the total number of entities in a distribution of balances
-    :param entries: list of tuples (balance, ), sorted by balance in descending order, where balance is a numeric type (int or float)
-    :param circulation: int, the total amount of tokens in circulation
+    Calculates the total number of contributors in a distribution of contributions
+    :param commit_distribution: a list of integers, each being the commits that a contributor has produced, sorted in descending order
     :returns: int that represents the total number of entities in the given distribution
     """
     return len(commit_distribution)
@@ -121,8 +120,8 @@ def compute_total_entities(commit_distribution):
 
 def compute_max_power_ratio(commit_distribution):
     """
-    Calculates the maximum power ratio of a distribution of balances
-    :param commit_distribution: a list of integers, each being the commits that an entity has produced, sorted in descending order
+    Calculates the maximum power ratio of a distribution of contributions
+    :param commit_distribution: a list of integers, each being the commits that a contributor has produced, sorted in descending order
     :returns: float that represents the maximum power ratio among all commit producers (0 if there weren't any)
     """
     total_commits = sum(commit_distribution)
@@ -132,7 +131,7 @@ def compute_max_power_ratio(commit_distribution):
 def compute_theil_index(commit_distribution):
     """
     Calculates the Thiel index of a distribution of commits to entities
-    :param commit_distribution: a list of integers, each being the commits that an entity has produced, sorted in descending order
+    :param commit_distribution: a list of integers, each being the commits that a contributor has produced, sorted in descending order
     :returns: float that represents the Thiel index of the given distribution
     """
     n = len(commit_distribution)

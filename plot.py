@@ -42,56 +42,59 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
     plt.close("all")
 
 
-def plot_commit_distribution(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative', legend=False):
+def plot_contribution_distribution(ledger_repos, data_dir, figures_dir, contribution_type, top_k=-1, unit='relative',
+                                   legend=False):
     """
     Plots the dynamics for each repository in terms of commit contribution
     :param ledger_repos: dictionary that contains the repositories for each ledger
     :param top_k: if > 0, then only the evolution of the top k contributors will be shown in the graph. Otherwise,
     all contributors will be plotted.
     :param unit: string that specifies whether the plots to be generated will be in absolute or relative values (i.e.
-        number of commits or share of commits). It can be one of: absolute, relative
+        number of contributions or share of contributions). It can be one of: absolute, relative
     """
     for ledger, repos in ledger_repos.items():
         for repo in repos:
-            filename = f"{repo}_commits_per_entity.csv"
-            sample_windows, blocks_per_entity = hlp.get_blocks_per_entity_from_file(filepath=data_dir / filename)
+            filename = f"{repo}_contributions_per_entity.csv"
+            sample_windows, contributions_per_entity = hlp.get_contributions_per_entity_from_file(
+                filepath=data_dir / filename)
 
-            total_blocks_per_sample_window = [0] * len(sample_windows)
-            for entity, block_values in blocks_per_entity.items():
-                for sample_window_idx, nblocks in block_values.items():
-                    total_blocks_per_sample_window[sample_window_idx] += nblocks
+            total_contributions_per_sample_window = [0] * len(sample_windows)
+            for entity, contribution_values in contributions_per_entity.items():
+                for sample_window_idx, ncontributions in contribution_values.items():
+                    total_contributions_per_sample_window[sample_window_idx] += ncontributions
 
-            total_blocks_per_sample_window = np.array(total_blocks_per_sample_window)
-            nonzero_idx = total_blocks_per_sample_window.nonzero()[0]  # only keep time chunks with at least one block
-            total_blocks_per_sample_window = total_blocks_per_sample_window[nonzero_idx]
+            total_contributions_per_sample_window = np.array(total_contributions_per_sample_window)
+            nonzero_idx = total_contributions_per_sample_window.nonzero()[
+                0]  # only keep time chunks with at least one contribution
+            total_contributions_per_sample_window = total_contributions_per_sample_window[nonzero_idx]
             sample_windows = [sample_windows[i] for i in nonzero_idx]
 
-            blocks_array = []
-            for entity, block_values in blocks_per_entity.items():
+            contributions_array = []
+            for entity, contribution_values in contributions_per_entity.items():
                 entity_array = []
                 for sample_window_idx in nonzero_idx:
                     try:
-                        entity_array.append(block_values[sample_window_idx])
+                        entity_array.append(contribution_values[sample_window_idx])
                     except KeyError:
                         entity_array.append(0)
-                blocks_array.append(entity_array)
+                contributions_array.append(entity_array)
 
-            blocks_array = np.array(blocks_array)
+            contributions_array = np.array(contributions_array)
 
             if unit == 'relative':
-                block_shares_array = blocks_array / total_blocks_per_sample_window * 100
-                values = block_shares_array
-                ylabel = 'Share of commits (%)'
-                legend_threshold = 0 * total_blocks_per_sample_window + 5  # only show in the legend contributors that have a contribution of at least 5% in some sample window
+                contribution_shares_array = contributions_array / total_contributions_per_sample_window * 100
+                values = contribution_shares_array
+                ylabel = f'Share of {contribution_type} (%)'
+                legend_threshold = 0 * total_contributions_per_sample_window + 5  # only show in the legend contributors that have a contribution of at least 5% in some sample window
             else:
-                values = blocks_array
-                ylabel = 'Number of commits'
-                legend_threshold = 0.05 * total_blocks_per_sample_window
+                values = contributions_array
+                ylabel = f'Number of {contribution_type}'
+                legend_threshold = 0.05 * total_contributions_per_sample_window
             max_values_per_contributor = values.max(axis=1)
             labels = [f"{entity_name if len(entity_name) <= 15 else entity_name[:15] + '..'}"
                       f"({round(max_values_per_contributor[i], 1)}{'%' if unit == 'relative' else ''})" if any(
-                values[i] > legend_threshold) else f'_{entity_name}' for i, entity_name in
-                enumerate(blocks_per_entity.keys())]
+                        values[i] > legend_threshold) else f'_{entity_name}' for i, entity_name in
+                      enumerate(contributions_per_entity.keys())]
             if top_k > 0:  # only keep the top k contributors (i.e. the contributors that contributed the most commits in total)
                 total_value_per_contributor = values.sum(axis=1)
                 top_k_idx = total_value_per_contributor.argpartition(-top_k)[-top_k:]
@@ -100,8 +103,9 @@ def plot_commit_distribution(ledger_repos, data_dir, figures_dir, top_k=-1, unit
 
             if values.shape[1] > 1:  # only plot stack area chart if there is more than one time step
                 plot_stack_area_chart(values=values,
-                    execution_id=f'{repo}_{unit}_values_top_{top_k}' if top_k > 0 else f'{repo}_{unit}_values_all',
-                    path=figures_dir, ylabel=ylabel, legend_labels=labels, tick_labels=sample_windows, legend=legend)
+                                      execution_id=f'{repo}_{unit}_values_top_{top_k}' if top_k > 0 else f'{repo}_{unit}_values_all',
+                                      path=figures_dir, ylabel=ylabel, legend_labels=labels, tick_labels=sample_windows,
+                                      legend=legend)
             else:
                 # if there is only one time step, plot a doughnut chart
                 data_dict = {label: value[0] for label, value in zip(labels, values)}
@@ -160,20 +164,27 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
     plt.savefig(filepath, bbox_inches='tight')
 
 
-def plot(ledger_repos, metrics, granularity, entity_type, weight_type):
-    commits_per_entity_data_dir = hlp.get_output_dir(output_type='data', weight_type=weight_type,
-                                                     entity_type=entity_type, granularity=granularity,
-                                                     data_type='commits_per_entity')
-    metrics_file = hlp.get_output_dir(output_type='data', weight_type=weight_type, entity_type=entity_type,
-                                      granularity=granularity, data_type='metrics') / 'all_metrics.csv'
-    dynamics_figures_dir = hlp.get_output_dir(output_type='figures', weight_type=weight_type, entity_type=entity_type,
-                                              granularity=granularity, data_type='dynamics', mkdir=True)
-    metrics_figures_dir = hlp.get_output_dir(output_type='figures', weight_type=weight_type, entity_type=entity_type,
-                                             granularity=granularity, data_type='metrics', mkdir=True)
+def plot(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type):
+    contributions_per_entity_data_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type,
+                                                           contributor_type=contributor_type,
+                                                           commits_per_sample_window=commits_per_sample_window,
+                                                           data_type='contributions_per_entity')
+    metrics_file = hlp.get_output_dir(output_type='data', contribution_type=contribution_type,
+                                      contributor_type=contributor_type,
+                                      commits_per_sample_window=commits_per_sample_window,
+                                      data_type='metrics') / 'all_metrics.csv'
+    dynamics_figures_dir = hlp.get_output_dir(output_type='figures', contribution_type=contribution_type,
+                                              contributor_type=contributor_type,
+                                              commits_per_sample_window=commits_per_sample_window, data_type='dynamics',
+                                              mkdir=True)
+    metrics_figures_dir = hlp.get_output_dir(output_type='figures', contribution_type=contribution_type,
+                                             contributor_type=contributor_type,
+                                             commits_per_sample_window=commits_per_sample_window, data_type='metrics',
+                                             mkdir=True)
 
     logging.info("Plotting commit distributions for each repo..")
-    plot_commit_distribution(ledger_repos=ledger_repos, data_dir=commits_per_entity_data_dir,
-                             figures_dir=dynamics_figures_dir, legend=False)
+    plot_contribution_distribution(ledger_repos=ledger_repos, data_dir=contributions_per_entity_data_dir,
+                                   figures_dir=dynamics_figures_dir, legend=False, contribution_type=contribution_type)
     logging.info("Plotting metrics..")
     if metrics_file.exists():
         plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, file=metrics_file,
@@ -184,11 +195,11 @@ if __name__ == '__main__':
     logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
     ledger_repos = hlp.get_ledger_repos()
     metrics = hlp.get_metrics()
-    granularity = hlp.get_granularities()
-    entity_types = hlp.get_entity_types()
-    weight_types = hlp.get_weight_types()
-    for weight_type in weight_types:
-        logging.info(f'Plotting by weight type: {weight_type}')
-        for entity_type in entity_types:
-            logging.info(f'Plotting per entity type: {entity_type}')
-            plot(ledger_repos, metrics, granularity, entity_type, weight_type)
+    commits_per_sample_window = hlp.get_commits_per_sample_window_list()
+    contributor_types = hlp.get_contributor_types()
+    contribution_types = hlp.get_contribution_types()
+    for contribution_type in contribution_types:
+        logging.info(f'Plotting by contribution type: {contribution_type}')
+        for contributor_type in contributor_types:
+            logging.info(f'Plotting per entity type: {contributor_type}')
+            plot(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type)

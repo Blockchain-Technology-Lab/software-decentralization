@@ -49,48 +49,48 @@ def get_metrics():
     return metrics
 
 
-def get_granularities():
+def get_commits_per_sample_window_list():
     """
-    Retrieves the granularities that will be used for the analysis.
-    :returns: a list of numbers that corresponds to the granularity (number of commits per sample window) that will be
-    used in the analysis. If no granularity is found in the configuration file, it returns [None].
-    """
-    config = get_config_data()
-    try:
-        granularities = config['granularities']
-    except KeyError:
-        granularities = [None]
-        logging.warning('No granularity found in config.yaml. Defaulting to no granularity (using entire history as '
-                        'a single sample).')
-    return granularities
-
-
-def get_entity_types():
-    """
-    Retrieves the list of entity types that will be considered in the analysis.
-    :returns: a list of strings, each corresponding to an entity type
+    Retrieves the numbers of commits per sample window that will be used for the analysis.
+    :returns: a list of numbers that corresponds to the commits per sample window that will be
+    used in the analysis. If none is found in the configuration file, it returns [None].
     """
     config = get_config_data()
     try:
-        entity_types = config['entity_types']
+        commits_per_sample_window_list = config['commits_per_sample_window']
     except KeyError:
-        entity_types = []
-        logging.warning('No entity types found in config.yaml.')
-    return entity_types
+        commits_per_sample_window_list = [None]
+        logging.warning('No commits_per_sample_window found in config.yaml. Defaulting to using '
+                        'entire history as a single sample).')
+    return commits_per_sample_window_list
 
 
-def get_weight_types():
+def get_contributor_types():
     """
-    Retrieves the weight types that will be used for the analysis (e.g. number of commits).
-    :returns: a list of strings, each corresponding to a weight type
+    Retrieves the list of contributor types that will be considered in the analysis.
+    :returns: a list of strings, each corresponding to a contributor type
     """
     config = get_config_data()
     try:
-        weight_types = config['weight_types']
+        contributor_types = config['contributor_types']
     except KeyError:
-        weight_types = []
-        logging.warning('No weight types found in config.yaml.')
-    return weight_types
+        contributor_types = []
+        logging.warning('No contributor types found in config.yaml.')
+    return contributor_types
+
+
+def get_contribution_types():
+    """
+    Retrieves the contribution types that will be used for the analysis (e.g. number of commits).
+    :returns: a list of strings, each corresponding to a contribution type
+    """
+    config = get_config_data()
+    try:
+        contribution_types = config['contribution_types']
+    except KeyError:
+        contribution_types = []
+        logging.warning('No contribution types found in config.yaml.')
+    return contribution_types
 
 
 def get_refresh_data_flag():
@@ -107,18 +107,18 @@ def get_refresh_data_flag():
     return refresh_data_flag
 
 
-def get_output_dir(output_type, weight_type, entity_type, granularity, data_type, mkdir=False):
+def get_output_dir(output_type, contribution_type, contributor_type, commits_per_sample_window, data_type, mkdir=False):
     """
     Determines the output directory where the produced files will be saved.
     :param output_type: either "data" or "figures"
-    :param weight_type: one of the weight types from config.yaml (e.g. number_of_commits)
-    :param entity_type: one of the entity types from config.yaml (e.g. author)
-    :param granularity: the number of commits per sample window used in the analysis
-    :param data_type: either "commits_per_entity" or "metrics"
+    :param contribution_type: one of the contribution types from config.yaml (e.g. number_of_commits)
+    :param contributor_type: one of the contributor types from config.yaml (e.g. author)
+    :param commits_per_sample_window: the number of commits per sample window used in the analysis
+    :param data_type: either "commits_per_contributor" or "metrics"
     :param mkdir: boolean that determines whether the output directory should be created if it does not exist
     :returns: a pathlib.PosixPath object of the output directory
     """
-    output_dir = pathlib.Path(f'output/{output_type}/by_{weight_type}/per_{entity_type}/per_{granularity}_commits'
+    output_dir = pathlib.Path(f'output/{output_type}/by_{contribution_type}/per_{contributor_type}/per_{commits_per_sample_window}_commits'
                               f'/{data_type}')
     if mkdir:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -138,13 +138,13 @@ def read_commit_data(ledger, repo):
     return commits
 
 
-def write_commits_per_entity_to_file(commits_per_entity, mean_timestamps, filepath):
+def write_contributions_per_entity_to_file(contributions_per_entity, mean_timestamps, filepath):
     """
-    Produces a csv file with information about the resources (blocks) that each entity controlled over some timeframe.
+    Produces a csv file with information about the contributions that each entity made over some timeframe.
     The entries are sorted so that the entities that controlled the most resources appear first.
     :param output_dir: pathlib.PosixPath object of the output directory where the produced csv file is written to.
-    :param commits_per_entity: a dictionary with entities as keys and lists as values, where each list represents the
-        number of commits authored by the entity in each sample window
+    :param contributions_per_entity: a dictionary with entities as keys and lists as values, where each list represents the
+        contributions made by each entity in each sample window
     :param mean_timestamps: a dictionary with sample window ids as keys and the mean timestamp of the commits in that
         sample window as values
     :param filepath: pathlib path to be used for the produced file.
@@ -156,7 +156,7 @@ def write_commits_per_entity_to_file(commits_per_entity, mean_timestamps, filepa
         if len(timestamps) > 1:
             # Write header if there is more than one sample window
             csv_writer.writerow(['Entity \\ Time'] + timestamps)
-        for entity, entity_commits in commits_per_entity.items():
+        for entity, entity_commits in contributions_per_entity.items():
             entity_row = [entity]
             for sample_window in sample_windows:
                 try:
@@ -166,16 +166,17 @@ def write_commits_per_entity_to_file(commits_per_entity, mean_timestamps, filepa
             csv_writer.writerow(entity_row)
 
 
-def get_blocks_per_entity_from_file(filepath):
+def get_contributions_per_entity_from_file(filepath):
     """
-    Retrieves information about the number of blocks that each entity produced over some timeframe for some project.
+    Retrieves information about the number of contributions that each entity made over some timeframe for some
+    project.
     :param filepath: the path to the file with the relevant information. It can be either an absolute or a relative
     path in either a pathlib.PosixPath object or a string.
     :returns: a tuple of length 2 where the first item is a list of strings each representing the mean timestamp of a
-    sample window and the second item is a dictionary with entities (keys) and a list of the number of commits they
-    contributed during each sample window (values)
+    sample window and the second item is a dictionary with entities (keys) and a list of the number of contributions
+    they made during each sample window (values)
     """
-    commits_per_entity = defaultdict(dict)
+    contributions_per_entity = defaultdict(dict)
     with open(filepath, newline='') as f:
         csv_reader = csv.reader(f)
         header = next(csv_reader, None)
@@ -183,5 +184,5 @@ def get_blocks_per_entity_from_file(filepath):
         for row in csv_reader:
             entity = row[0]
             for idx, item in enumerate(row[1:]):
-                commits_per_entity[entity][idx] = int(item)
-    return sample_windows, commits_per_entity
+                contributions_per_entity[entity][idx] = int(item)
+    return sample_windows, contributions_per_entity

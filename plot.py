@@ -39,8 +39,7 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
                        labelspacing=0.3, handlelength=1)
     filename = execution_id + ".png"
     plt.savefig(path / filename, bbox_inches='tight')
-    plt.clf()
-    plt.close(fig)
+    plt.close("all")
 
 
 def plot_commit_distribution(ledger_repos, data_dir, figures_dir, top_k=-1, unit='relative', legend=False):
@@ -123,8 +122,7 @@ def plot_comparative_metrics(ledger_repos, metrics, file, figures_dir):
         plt.ylabel(metric.replace('_', ' ').title())
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=3, fancybox=True, shadow=True)
         plt.savefig(figures_dir / f"{metric}.png", bbox_inches='tight')
-        plt.clf()
-        plt.close()
+        plt.close("all")
 
 
 def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.png'):

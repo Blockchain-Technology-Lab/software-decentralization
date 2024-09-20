@@ -55,9 +55,9 @@ def gini(array):
     return (np.sum((2 * index - n - 1) * array)) / (n * np.sum(array))
 
 
-def compute_hhi(commit_distribution):
+def compute_herfindahl_hirschman_index(commit_distribution):
     """
-    Calculates the Herfindahl-Hirschman index of a distribution of commits to entities
+    Calculates the Herfindahl-Hirschman index (HHI) of a distribution of commits to entities
     From investopedia: The HHI is calculated by squaring the market share of each firm competing in a market and then
     summing the resulting numbers. It can range from close to 0 to 10,000, with lower values indicating a less
     concentrated market. The U.S. Department of Justice considers a market with an HHI of less than 1,500 to be a

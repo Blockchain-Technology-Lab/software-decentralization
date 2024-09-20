@@ -27,7 +27,7 @@ repositories:
 metrics:
   - entropy
 #  - gini
-  - hhi
+  - herfindahl_hirschman_index
 #  - nakamoto_coefficient
   - max_power_ratio
   - total_entities

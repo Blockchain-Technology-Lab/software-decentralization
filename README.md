@@ -22,20 +22,22 @@ Replace `python` with your python version if necessary, e.g. `python3.9` (same f
 
 ## Execution
 
-To collect data, execute the script `collect_commit_data` from the `data_collection` directory.
-For example, you can use this command to do it from the root directory of the project:
-```
-python -m data_collection.collect_commit_data
-```
-Note that the script will clone the repositories of the projects listed in the `data_collection/repo_info.json` file 
-to a new `data_collection/repos` subdirectory. 
+To run the tool, simply execute the `run.py` script from the root directory of the project:
 
-To analyze the data, execute the `run.py` script from the root directory of the project:
 ```
 python run.py
 ```
 
+If the script is executed for the first time, it will clone the repositories of the projects listed in the 
+[`config.yaml`](https://github.com/Blockchain-Technology-Lab/software-decentralization/blob/main/config.yaml)
+file and extract data about their commit history. 
+These data are then used to calculate various metrics that quantify the decentralization of the projects.
 
-The script will generate an `output` directory with the results of the analysis (csv files and figures).
+The script will generate an `output` directory with the results of the analysis,
+organised in subdirectories depending on the type of output (data file or figure), 
+contribution type (one of lines changed,  commits, or merge commits), 
+contributor type (author or committer), and number of commits per sample window. 
 
-To configure the analysis, you can modify the [`config.yaml`](https://github.com/Blockchain-Technology-Lab/software-decentralization/blob/main/config.yaml) file.
+To configure the analysis (e.g. change which repositories will be analysed or which metrics will be calculated), 
+you can modify the [`config.yaml`](https://github.com/Blockchain-Technology-Lab/software-decentralization/blob/main/config.yaml)
+file.

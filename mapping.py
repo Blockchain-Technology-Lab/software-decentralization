@@ -58,9 +58,11 @@ def assign_name_to_email(users_per_email):
 def save_contributor_names_to_file(repo, names, dir):
     """
     Saves the contributor names associated with email addresses to a file, ordered alphabetically by email.
+    Before saving, commas are removed from the names, if present.
     :param repo: the name of the repository to save the contributor names for
     :param names: a dictionary with an email as a key and a name as a value
     """
+    names = {email: name.replace(',', '') for email, name in names.items()}
     sorted_names = {email: name for email, name in sorted(names.items())}
     with open(dir / f'{repo}.json', 'w') as f:
         json.dump(sorted_names, f, indent=4)

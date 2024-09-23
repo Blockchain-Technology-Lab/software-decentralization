@@ -5,12 +5,15 @@ from metrics import *  # noqa
 import pandas as pd
 from plot import plot
 from data_collection.collect_commit_data import fetch_data
+from mapping import get_contributor_names_from_file
 
 
 def aggregate(ledger, repo, commits_per_sample_window, contributor_type, contribution_type):
     output_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type, contributor_type=contributor_type,
                                     commits_per_sample_window=commits_per_sample_window, data_type='contributions_per_entity', mkdir=True)
     logging.info(f'Processing {repo}...')
+
+    contributor_names_by_email = get_contributor_names_from_file(repo)
     commits = hlp.read_commit_data(ledger, repo)
 
     # aggregate commits by the appropriate number of commits per sample window
@@ -19,10 +22,10 @@ def aggregate(ledger, repo, commits_per_sample_window, contributor_type, contrib
     for i, commit in enumerate(reversed(commits)):
         sample_window_idx = i // commits_per_sample_window if commits_per_sample_window else 0
         sample_window_timestamps[sample_window_idx].append(commit[f'{contributor_type}_timestamp'])
-        entity = commit[f'{contributor_type}_name']
-        contributions_per_entity[entity][sample_window_idx] = contributions_per_entity[entity].get(sample_window_idx,
-                                                                                                   0) + get_contribution_from_commit(
-            commit, contribution_type)
+        contributor_email = commit[f'{contributor_type}_email']
+        contributor_name = contributor_names_by_email[contributor_email]
+        contributions_per_entity[contributor_name][sample_window_idx] = contributions_per_entity[contributor_name].get(
+            sample_window_idx, 0) + get_contribution_from_commit(commit, contribution_type)
     mean_timestamps = {idx: pd.to_datetime(timestamps).mean().date() for idx, timestamps in
                        sample_window_timestamps.items()}
     filename = f'{repo}_contributions_per_entity.csv'

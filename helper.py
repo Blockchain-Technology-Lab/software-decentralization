@@ -156,6 +156,8 @@ def write_contributions_per_entity_to_file(contributions_per_entity, mean_timest
         if len(timestamps) > 1:
             # Write header if there is more than one sample window
             csv_writer.writerow(['Entity \\ Time'] + timestamps)
+        else:
+            csv_writer.writerow(['Entity', 'Contributions'])
         for entity, entity_commits in contributions_per_entity.items():
             entity_row = [entity]
             for sample_window in sample_windows:

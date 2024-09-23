@@ -55,6 +55,17 @@ def assign_name_to_email(users_per_email):
     return email_to_name
 
 
+def save_contributor_names_to_file(repo, names, dir):
+    """
+    Saves the contributor names associated with email addresses to a file, ordered alphabetically by email.
+    :param repo: the name of the repository to save the contributor names for
+    :param names: a dictionary with an email as a key and a name as a value
+    """
+    sorted_names = {email: name for email, name in sorted(names.items())}
+    with open(dir / f'{repo}.json', 'w') as f:
+        json.dump(sorted_names, f, indent=4)
+
+
 def get_contributor_names_from_file(repo):
     """
     Reads the contributor names associated with email addresses from a file.
@@ -81,5 +92,4 @@ if __name__ == '__main__':
             users_per_email = group_users_by_email(commits)
             names = assign_name_to_email(users_per_email)
             names = add_manual_entries(repo, names)
-            with open(contributor_names_dir / f'{repo}.json', 'w') as f:
-                json.dump(names, f, indent=4)
+            save_contributor_names_to_file(repo, names, contributor_names_dir)

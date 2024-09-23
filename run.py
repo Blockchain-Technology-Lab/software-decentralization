@@ -26,6 +26,11 @@ def aggregate(ledger, repo, commits_per_sample_window, contributor_type, contrib
         contributor_name = contributor_names_by_email[contributor_email]
         contributions_per_entity[contributor_name][sample_window_idx] = contributions_per_entity[contributor_name].get(
             sample_window_idx, 0) + get_contribution_from_commit(commit, contribution_type)
+    # remove last sample window if it has fewer observations than the rest
+    if commits_per_sample_window and len(sample_window_timestamps[sample_window_idx]) < commits_per_sample_window:
+        sample_window_timestamps.pop(sample_window_idx)
+        for entity, contributions in contributions_per_entity.items():
+            contributions.pop(sample_window_idx, None)
     mean_timestamps = {idx: pd.to_datetime(timestamps).mean().date() for idx, timestamps in
                        sample_window_timestamps.items()}
     filename = f'{repo}_contributions_per_entity.csv'

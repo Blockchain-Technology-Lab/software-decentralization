@@ -1,5 +1,3 @@
-import pathlib
-
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
@@ -9,7 +7,7 @@ import pandas as pd
 import helper as hlp
 
 
-def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tick_labels, legend):
+def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tick_labels, legend, title=''):
     """
 
     :param values: the data to be plotted. numpy array of shape (number of total entities, number of time steps)
@@ -20,6 +18,7 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
     num_time_steps = values.shape[1]
     col = sns.color_palette(cc.glasbey, n_colors=num_entities)
     plt.stackplot(range(num_time_steps), values, colors=col, edgecolor='face', linewidth=0.0001, labels=legend_labels)
+    plt.title(title)
     plt.margins(0)
     plt.xlabel("Date")
     plt.ylabel(ylabel)
@@ -91,10 +90,11 @@ def plot_contribution_distribution(ledger_repos, data_dir, figures_dir, contribu
                 ylabel = f'Number of {contribution_type}'
                 legend_threshold = 0.05 * total_contributions_per_sample_window
             max_values_per_contributor = values.max(axis=1)
-            labels = [f"{entity_name if len(entity_name) <= 15 else entity_name[:15] + '..'}"
-                      f"({round(max_values_per_contributor[i], 1)}{'%' if unit == 'relative' else ''})" if any(
-                        values[i] > legend_threshold) else f'_{entity_name}' for i, entity_name in
-                      enumerate(contributions_per_entity.keys())]
+            # labels = [f"{entity_name if len(entity_name) <= 15 else entity_name[:15] + '..'}"
+            #           f"({round(max_values_per_contributor[i], 1)}{'%' if unit == 'relative' else ''})" if any(
+            #             values[i] > legend_threshold) else f'_{entity_name}' for i, entity_name in
+            #           enumerate(contributions_per_entity.keys())]
+            labels = contributions_per_entity.keys()
             if top_k > 0:  # only keep the top k contributors (i.e. the contributors that contributed the most commits in total)
                 total_value_per_contributor = values.sum(axis=1)
                 top_k_idx = total_value_per_contributor.argpartition(-top_k)[-top_k:]
@@ -105,11 +105,12 @@ def plot_contribution_distribution(ledger_repos, data_dir, figures_dir, contribu
                 plot_stack_area_chart(values=values,
                                       execution_id=f'{repo}_{unit}_values_top_{top_k}' if top_k > 0 else f'{repo}_{unit}_values_all',
                                       path=figures_dir, ylabel=ylabel, legend_labels=labels, tick_labels=sample_windows,
-                                      legend=legend)
+                                      legend=legend, title=f'{repo.title()} - {contribution_type} distribution over time')
             else:
                 # if there is only one time step, plot a doughnut chart
                 data_dict = {label: value[0] for label, value in zip(labels, values)}
-                plot_doughnut_chart(data_dict, filepath=figures_dir / f'{repo}_doughnut_chart.png')
+                plot_doughnut_chart(data_dict, filepath=figures_dir / f'{repo}_doughnut_chart.png',
+                                    title=f'{repo.title()} - All time {contribution_type} distribution')
 
 
 def plot_comparative_metrics(ledger_repos, metrics, file, figures_dir):
@@ -144,23 +145,25 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
     data_dict = dict(sorted(data_dict.items(), key=lambda x: x[1], reverse=True))
 
     labels = [(f'{label[:15]}...' if len(label) > 15 else label) for label in data_dict.keys()]
+    labels = [label for label in data_dict.keys()]
+
     wedges, texts = ax.pie(data_dict.values(), wedgeprops=dict(width=0.5), startangle=0)
 
     bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
     kw = dict(arrowprops=dict(arrowstyle="-"), bbox=bbox_props, zorder=0, va="center")
 
-    for i, wedge in enumerate(wedges):
-        fraction = (wedge.theta2 - wedge.theta1) / 360
-        label_threshold = 0.02  # only show labels for the values that exceed the threshold
-        if fraction > label_threshold:
-            ang = (wedge.theta2 - wedge.theta1) / 2. + wedge.theta1
-            y = np.sin(np.deg2rad(ang))
-            x = np.cos(np.deg2rad(ang))
-            horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
-            connectionstyle = f"angle,angleA=0,angleB={ang}"
-            kw["arrowprops"].update({"connectionstyle": connectionstyle})
-            ax.annotate(labels[i], xy=(x, y), xytext=(1.35 * np.sign(x), 1.4 * y),
-                        horizontalalignment=horizontalalignment, **kw)
+    # for i, wedge in enumerate(wedges):
+    #     fraction = (wedge.theta2 - wedge.theta1) / 360
+    #     label_threshold = 0.02  # only show labels for the values that exceed the threshold
+    #     if fraction > label_threshold:
+    #         ang = (wedge.theta2 - wedge.theta1) / 2. + wedge.theta1
+    #         y = np.sin(np.deg2rad(ang))
+    #         x = np.cos(np.deg2rad(ang))
+    #         horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+    #         connectionstyle = f"angle,angleA=0,angleB={ang}"
+    #         kw["arrowprops"].update({"connectionstyle": connectionstyle})
+    #         ax.annotate(labels[i], xy=(x, y), xytext=(1.35 * np.sign(x), 1.4 * y),
+    #                     horizontalalignment=horizontalalignment, **kw)
     plt.savefig(filepath, bbox_inches='tight')
 
 

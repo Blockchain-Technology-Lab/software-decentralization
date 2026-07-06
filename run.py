@@ -13,7 +13,7 @@ def aggregate(ledger, repo, commits_per_sample_window, contributor_type, contrib
                                     commits_per_sample_window=commits_per_sample_window, data_type='contributions_per_entity', mkdir=True)
     logging.info(f'Processing {repo}...')
 
-    contributor_names_by_email = get_contributor_names_from_file(repo)
+    contributor_names_by_email = get_contributor_names_from_file()
     commits = hlp.read_commit_data(ledger, repo)
 
     # aggregate commits by the appropriate number of commits per sample window

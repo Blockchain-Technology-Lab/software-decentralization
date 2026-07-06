@@ -17,7 +17,7 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
     num_entities = values.shape[0]
     num_time_steps = values.shape[1]
     col = sns.color_palette(cc.glasbey, n_colors=num_entities)
-    plt.stackplot(range(num_time_steps), values, colors=col, edgecolor='face', linewidth=0.0001, labels=legend_labels)
+    plt.stackplot(range(num_time_steps), values, colors=col, edgecolor=col, linewidth=0.0001, labels=legend_labels)
     plt.title(title)
     plt.margins(0)
     plt.xlabel("Date")

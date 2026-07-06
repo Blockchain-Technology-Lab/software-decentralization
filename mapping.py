@@ -82,12 +82,15 @@ def get_contributor_names_from_file(repo):
     return names
 
 
-if __name__ == '__main__':
+def update_contributor_names(ledger_repos):
+    """
+    Regenerates the contributor name mapping file for each repo from its commit data.
+    :param ledger_repos: dictionary with ledger names as keys and lists of repository names as values
+    """
     data_collection_path = pathlib.Path(__file__).parent / 'data_collection'
     contributor_names_dir = data_collection_path / 'contributor_names'
     contributor_names_dir.mkdir(exist_ok=True, parents=True)
 
-    ledger_repos = hlp.get_ledger_repos()
     for ledger, repos in ledger_repos.items():
         for repo in repos:
             commits = hlp.read_commit_data(ledger, repo)

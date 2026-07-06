@@ -5,7 +5,7 @@ from metrics import *  # noqa
 import pandas as pd
 from plot import plot
 from data_collection.collect_commit_data import fetch_data
-from mapping import get_contributor_names_from_file
+from mapping import get_contributor_names_from_file, update_contributor_names
 
 
 def aggregate(ledger, repo, commits_per_sample_window, contributor_type, contribution_type):
@@ -109,6 +109,7 @@ if __name__ == '__main__':
     refresh_data_flag = hlp.get_refresh_data_flag()
     fetch_data(repos=[(ledger, repo) for ledger in ledger_repos for repo in ledger_repos[ledger]],
                update_existing=refresh_data_flag)
+    update_contributor_names(ledger_repos)
 
     metrics = hlp.get_metrics()
     commits_per_sample_window_list = hlp.get_commits_per_sample_window_list()

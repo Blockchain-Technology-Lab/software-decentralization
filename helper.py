@@ -107,6 +107,20 @@ def get_refresh_data_flag():
     return refresh_data_flag
 
 
+def get_plot_flag():
+    """
+    Retrieves the flag that determines whether the results of the analysis should be plotted.
+    :returns: a boolean that determines whether the results should be plotted
+    """
+    config = get_config_data()
+    try:
+        plot_flag = config['plot']
+    except KeyError:
+        plot_flag = False
+        logging.warning('No plot flag found in config.yaml. Defaulting to False.')
+    return plot_flag
+
+
 def get_output_dir(output_type, contribution_type, contributor_type, commits_per_sample_window, data_type, mkdir=False):
     """
     Determines the output directory where the produced files will be saved.

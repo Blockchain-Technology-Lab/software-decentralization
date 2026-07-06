@@ -112,6 +112,7 @@ if __name__ == '__main__':
     update_contributor_names(ledger_repos)
 
     metrics = hlp.get_metrics()
+    plot_flag = hlp.get_plot_flag()
     commits_per_sample_window_list = hlp.get_commits_per_sample_window_list()
     contributor_types = hlp.get_contributor_types()
     contribution_types = hlp.get_contribution_types()
@@ -125,4 +126,5 @@ if __name__ == '__main__':
                     for repo in repos:
                         aggregate(ledger, repo, commits_per_sample_window, contributor_type, contribution_type)
                 run_metrics(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type)
-                plot(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type)
+                if plot_flag:
+                    plot(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type)

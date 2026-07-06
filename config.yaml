@@ -60,3 +60,7 @@ contribution_types:
 # Note that this is only relevant for some repository if it already exists locally.
 # If a repository does not exist locally, then it will be cloned and commit data will be pulled regardless of this flag.
 refresh_data: true
+
+
+# Flag to indicate whether to plot the results of the analysis.
+plot: false

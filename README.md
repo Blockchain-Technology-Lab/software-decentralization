@@ -37,7 +37,7 @@ and `BCHUnlimited`). In these cases, the commit histories of all the client repo
 blockchain are merged into a single, chronologically ordered history before any metrics are calculated.
 Decentralization is therefore measured at the level of the blockchain as a whole (across all of its client
 implementations), rather than per individual repository. Note that Ethereum's execution and consensus clients are
-treated separately (`ethereum-execution` and `ethereum-consensus`) for this purpose. See
+treated separately (`ethereum_execution` and `ethereum_consensus`) for this purpose. See
 the [Clients considered](#clients-considered) section below for the exact set of repositories that make up each
 blockchain in the current configuration.
 

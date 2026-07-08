@@ -6,14 +6,14 @@ repositories:
     - BCHUnlimited
   cardano:
     - cardano-node
-  ethereum-consensus:
+  ethereum_consensus:
     - lighthouse
     - lodestar
     - nimbus-eth2
     - prysm
     - teku
     - grandine
-  ethereum-execution:
+  ethereum_execution:
     - besu
     - erigon
     - go-ethereum

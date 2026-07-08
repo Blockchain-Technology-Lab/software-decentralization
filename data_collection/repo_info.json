@@ -25,7 +25,7 @@
       "host": "github"
     }
   },
-  "ethereum-consensus": {
+  "ethereum_consensus": {
     "lighthouse": {
       "owner": "sigp",
       "branch": "stable",
@@ -57,7 +57,7 @@
       "host": "github"
     }
   },
-  "ethereum-execution": {
+  "ethereum_execution": {
     "go-ethereum": {
       "owner": "ethereum",
       "branch": "master",

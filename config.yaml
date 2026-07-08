@@ -20,7 +20,7 @@ repositories:
   solana:
     - solana
   tezos:
-    - tezos-mirror
+    - tezos
   zcash:
     - zcash
 

@@ -2,79 +2,94 @@
   "bitcoin": {
     "bitcoin": {
       "owner": "bitcoin",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     }
   },
   "bitcoin_cash": {
     "bitcoin-cash-node": {
       "owner": "bitcoin-cash-node",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     },
     "bchd": {
       "owner": "gcash",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     },
     "bitcoin-verde": {
       "owner": "SoftwareVerde",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     }
   },
   "cardano": {
     "cardano-node": {
       "owner": "IntersectMBO",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     }
   },
   "ethereum": {
     "go-ethereum": {
       "owner": "ethereum",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     },
     "nethermind": {
       "owner": "NethermindEth",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     },
     "erigon": {
       "owner": "ledgerwatch",
-      "branch": "main"
+      "branch": "main",
+      "host": "github"
     },
     "besu": {
       "owner": "hyperledger",
-      "branch": "main"
+      "branch": "main",
+      "host": "github"
     },
     "reth": {
       "owner": "paradigmxyz",
-      "branch": "main"
+      "branch": "main",
+      "host": "github"
     }
   },
     "litecoin": {
         "litecoin": {
         "owner": "litecoin-project",
-        "branch": "master"
+        "branch": "master",
+        "host": "github"
         }
     },
    "polkadot": {
     "polkadot-sdk": {
       "owner": "paritytech",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     }
   },
   "solana": {
     "solana": {
       "owner": "solana-labs",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     }
   },
   "tezos": {
-    "tezos-mirror": {
+    "tezos": {
       "owner": "tezos",
-      "branch": "master"
+      "branch": "master",
+      "host": "gitlab"
     }
   },
   "zcash": {
     "zcash": {
       "owner": "zcash",
-      "branch": "master"
+      "branch": "master",
+      "host": "github"
     }
   }
 }

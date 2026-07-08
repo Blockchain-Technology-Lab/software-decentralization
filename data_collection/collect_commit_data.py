@@ -4,6 +4,11 @@ import pathlib
 import git
 from datetime import datetime
 
+HOST_DOMAINS = {
+    'github': 'github.com',
+    'gitlab': 'gitlab.com',
+}
+
 
 def get_commit_data(git_repo, branch, filepath):
     try:
@@ -61,6 +66,7 @@ def fetch_data(repos, update_existing):
     for ledger, repo_name in repos:
         repo_owner = repo_info[ledger][repo_name]['owner']
         repo_branch = repo_info[ledger][repo_name]['branch']
+        repo_host = repo_info[ledger][repo_name].get('host', 'github')
 
         local_repo_dir = data_collection_path / f'repos/{ledger}/{repo_name}'
         local_repo_dir.mkdir(exist_ok=True, parents=True)
@@ -73,7 +79,7 @@ def fetch_data(repos, update_existing):
                 commits_needed = True
         except git.exc.InvalidGitRepositoryError:
             logging.info(f'Cloning {repo_name} ({ledger}) repository and fetching all commits...')
-            repo_url = f'https://github.com/{repo_owner}/{repo_name}.git'
+            repo_url = f'https://{HOST_DOMAINS[repo_host]}/{repo_owner}/{repo_name}.git'
             git_repo = git.Repo.clone_from(repo_url, local_repo_dir)
             commits_needed = True
 

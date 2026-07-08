@@ -8,18 +8,20 @@ from data_collection.collect_commit_data import fetch_data
 from mapping import get_contributor_names_from_file, update_contributor_names
 
 
-def aggregate(ledger, repo, commits_per_sample_window, contributor_type, contribution_type):
+def aggregate(ledger, repos, commits_per_sample_window, contributor_type, contribution_type):
     output_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type, contributor_type=contributor_type,
                                     commits_per_sample_window=commits_per_sample_window, data_type='contributions_per_entity', mkdir=True)
-    logging.info(f'Processing {repo}...')
+    logging.info(f'Processing {ledger}...')
 
     contributor_names_by_email = get_contributor_names_from_file()
-    commits = hlp.read_commit_data(ledger, repo)
+    # merge the commits of all repos of the ledger into a single chronological history
+    commits = [commit for repo in repos for commit in hlp.read_commit_data(ledger, repo)]
+    commits.sort(key=lambda commit: commit[f'{contributor_type}_timestamp'])
 
     # aggregate commits by the appropriate number of commits per sample window
     contributions_per_entity = defaultdict(dict)
     sample_window_timestamps = defaultdict(list)
-    for i, commit in enumerate(reversed(commits)):
+    for i, commit in enumerate(commits):
         sample_window_idx = i // commits_per_sample_window if commits_per_sample_window else 0
         sample_window_timestamps[sample_window_idx].append(commit[f'{contributor_type}_timestamp'])
         contributor_email = commit[f'{contributor_type}_email']
@@ -33,7 +35,7 @@ def aggregate(ledger, repo, commits_per_sample_window, contributor_type, contrib
             contributions.pop(sample_window_idx, None)
     mean_timestamps = {idx: pd.to_datetime(timestamps).mean().date() for idx, timestamps in
                        sample_window_timestamps.items()}
-    filename = f'{repo}_contributions_per_entity.csv'
+    filename = f'{ledger}_contributions_per_entity.csv'
     hlp.write_contributions_per_entity_to_file(contributions_per_entity, mean_timestamps, output_dir / filename)
 
 
@@ -71,16 +73,15 @@ def run_metrics(ledger_repos, metrics, commits_per_sample_window, contributor_ty
                                           contributor_type=contributor_type, commits_per_sample_window=commits_per_sample_window,
                                           data_type='metrics', mkdir=True)
 
-    repos = [repo for repos in ledger_repos.values() for repo in repos]
     metric_dfs = {metric: pd.DataFrame() for metric in metrics}
     all_metrics_rows = []
-    for repo in repos:
+    for ledger in ledger_repos:
         sample_windows, contributions_per_entity = hlp.get_contributions_per_entity_from_file(
-            contributions_per_entity_data_dir / f'{repo}_contributions_per_entity.csv')
+            contributions_per_entity_data_dir / f'{ledger}_contributions_per_entity.csv')
         if len(sample_windows) > 1:
             sample_window_results = defaultdict(list)
             for metric in metrics:
-                metric_repo_results = {}
+                metric_ledger_results = {}
                 for sample_window_id in range(len(sample_windows)):
                     sample_contributions_per_entity = {}
                     for entity, contribution_values in contributions_per_entity.items():
@@ -90,12 +91,12 @@ def run_metrics(ledger_repos, metrics, commits_per_sample_window, contributor_ty
                                                        v > 0}
                     sorted_sample_commits = sorted(sample_contributions_per_entity.values(), reverse=True)
                     func = eval(f'compute_{metric}')
-                    metric_repo_results[sample_window_id] = func(sorted_sample_commits)
-                    sample_window_results[sample_window_id].append(metric_repo_results[sample_window_id])
+                    metric_ledger_results[sample_window_id] = func(sorted_sample_commits)
+                    sample_window_results[sample_window_id].append(metric_ledger_results[sample_window_id])
 
-                metric_df_repo = pd.DataFrame.from_dict(metric_repo_results, orient='index', columns=[repo])
-                metric_dfs[metric] = metric_dfs[metric].join(metric_df_repo, how='outer')
-            all_metrics_rows.extend([[repo, sample_windows[sample_window_id]] + results for sample_window_id, results in
+                metric_df_ledger = pd.DataFrame.from_dict(metric_ledger_results, orient='index', columns=[ledger])
+                metric_dfs[metric] = metric_dfs[metric].join(metric_df_ledger, how='outer')
+            all_metrics_rows.extend([[ledger, sample_windows[sample_window_id]] + results for sample_window_id, results in
                                      sample_window_results.items()])
     if all_metrics_rows:
         all_metrics_df = pd.DataFrame(all_metrics_rows, columns=['ledger', 'date'] + metrics)
@@ -123,8 +124,7 @@ if __name__ == '__main__':
             for commits_per_sample_window in commits_per_sample_window_list:
                 logging.info(f'Processing with {commits_per_sample_window} commits per sample window')
                 for ledger, repos in ledger_repos.items():
-                    for repo in repos:
-                        aggregate(ledger, repo, commits_per_sample_window, contributor_type, contribution_type)
+                    aggregate(ledger, repos, commits_per_sample_window, contributor_type, contribution_type)
                 run_metrics(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type)
                 if plot_flag:
                     plot(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type)

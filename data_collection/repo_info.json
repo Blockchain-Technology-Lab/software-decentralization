@@ -25,7 +25,39 @@
       "host": "github"
     }
   },
-  "ethereum": {
+  "ethereum-consensus": {
+    "lighthouse": {
+      "owner": "sigp",
+      "branch": "stable",
+      "host": "github"
+    },
+    "lodestar": {
+      "owner": "ChainSafe",
+      "branch": "unstable",
+      "host": "github"
+    },
+    "nimbus-eth2": {
+      "owner": "status-im",
+      "branch": "stable",
+      "host": "github"
+    },
+    "prysm": {
+      "owner": "OffchainLabs",
+      "branch": "develop",
+      "host": "github"
+    },
+    "teku": {
+      "owner": "Consensys",
+      "branch": "master",
+      "host": "github"
+    },
+    "grandine": {
+      "owner": "grandinetech",
+      "branch": "develop",
+      "host": "github"
+    }
+  },
+  "ethereum-execution": {
     "go-ethereum": {
       "owner": "ethereum",
       "branch": "master",

@@ -11,7 +11,6 @@ from mapping import get_contributor_names_from_file, update_contributor_names
 def aggregate(ledger, repos, commits_per_sample_window, contributor_type, contribution_type):
     output_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type, contributor_type=contributor_type,
                                     commits_per_sample_window=commits_per_sample_window, data_type='contributions_per_entity', mkdir=True)
-    logging.info(f'Processing {ledger}...')
 
     contributor_names_by_email = get_contributor_names_from_file()
     # merge the commits of all repos of the ledger into a single chronological history

@@ -76,4 +76,5 @@ decentralization analysis.
 | Polkadot | [polkadot-sdk](https://github.com/paritytech/polkadot-sdk) |
 | Solana | [solana](https://github.com/solana-labs/solana) |
 | Tezos | [tezos](https://gitlab.com/tezos/tezos) |
+|XRPL | [rippled](https://github.com/XRPLF/rippled)|
 | Zcash | [zcash](https://github.com/zcash/zcash), [zebra](https://github.com/ZcashFoundation/zebra) |

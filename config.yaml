@@ -27,6 +27,8 @@ repositories:
     - solana
   tezos:
     - tezos
+  xrpl:
+    - rippled
   zcash:
     - zcash
     - zebra

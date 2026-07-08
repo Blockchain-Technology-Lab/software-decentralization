@@ -112,6 +112,13 @@
       "host": "gitlab"
     }
   },
+  "xrpl": {
+    "rippled": {
+      "owner": "XRPLF",
+      "branch": "develop",
+      "host": "github"
+    }
+  },
   "zcash": {
     "zcash": {
       "owner": "zcash",

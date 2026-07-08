@@ -2,17 +2,16 @@ repositories:
   bitcoin:
     - bitcoin
   bitcoin_cash:
-#    - bchd
     - bitcoin-cash-node
-#    - bitcoin-verde
+    - BCHUnlimited
   cardano:
     - cardano-node
   ethereum:
-#    - besu
-#    - erigon
+    - besu
+    - erigon
     - go-ethereum
     - nethermind
-#    - reth
+    - reth
   litecoin:
     - litecoin
   polkadot:
@@ -23,6 +22,7 @@ repositories:
     - tezos
   zcash:
     - zcash
+    - zebra
 
 metrics:
   - entropy

@@ -12,15 +12,10 @@
       "branch": "master",
       "host": "github"
     },
-    "bchd": {
-      "owner": "gcash",
-      "branch": "master",
-      "host": "github"
-    },
-    "bitcoin-verde": {
-      "owner": "SoftwareVerde",
-      "branch": "master",
-      "host": "github"
+    "BCHUnlimited": {
+      "owner": "bitcoinunlimited",
+      "branch": "dev",
+      "host": "gitlab"
     }
   },
   "cardano": {
@@ -89,6 +84,11 @@
     "zcash": {
       "owner": "zcash",
       "branch": "master",
+      "host": "github"
+    },
+    "zebra": {
+      "owner": "ZcashFoundation",
+      "branch": "main",
       "host": "github"
     }
   }

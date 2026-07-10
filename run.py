@@ -13,8 +13,10 @@ def aggregate(ledger, repos, commits_per_sample_window, contributor_type, contri
                                     commits_per_sample_window=commits_per_sample_window, data_type='contributions_per_entity', mkdir=True)
 
     contributor_names_by_email = get_contributor_names_from_file()
-    # merge the commits of all repos of the ledger into a single chronological history
+    # merge the commits of all repos of the ledger into a single chronological history, excluding bot commits
     commits = [commit for repo in repos for commit in hlp.read_commit_data(ledger, repo)]
+    commits = [commit for commit in commits
+              if not hlp.is_bot(commit[f'{contributor_type}_name'], commit[f'{contributor_type}_email'])]
     commits.sort(key=lambda commit: commit[f'{contributor_type}_timestamp'])
 
     # aggregate commits by the appropriate number of commits per sample window

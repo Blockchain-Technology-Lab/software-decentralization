@@ -1,5 +1,4 @@
 import pathlib
-
 import helper as hlp
 from collections import defaultdict
 import json
@@ -18,6 +17,8 @@ def group_users_by_email(commit_data, users_per_email=None):
         for contributor_type in ['author', 'committer']:
             name = commit[f'{contributor_type}_name']
             email = commit[f'{contributor_type}_email']
+            if hlp.is_bot(name, email):
+                continue
             users_per_email[email][name] += 1
     return users_per_email
 

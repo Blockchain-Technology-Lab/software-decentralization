@@ -139,6 +139,18 @@ def get_output_dir(output_type, contribution_type, contributor_type, commits_per
     return output_dir
 
 
+def is_bot(name, email):
+    """
+    Heuristically determines whether a commit's author/committer identifies an automated bot rather than a human
+    contributor, so that bot commits (e.g. from dependabot, renovate, github-actions) can be excluded from the
+    decentralization analysis.
+    :param name: the author or committer name of a commit
+    :param email: the author or committer email of a commit
+    :returns: True if the name/email is recognized as a bot, False otherwise
+    """
+    return '[bot]' in f'{name} {email}'.lower()
+
+
 def read_commit_data(ledger, repo):
     """
     Reads the raw commit data for some repository associated with some ledger.

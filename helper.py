@@ -121,19 +121,23 @@ def get_plot_flag():
     return plot_flag
 
 
-def get_output_dir(output_type, contribution_type, contributor_type, commits_per_sample_window, data_type, mkdir=False):
+def get_output_dir(ledger, output_type, data_type, contribution_type, contributor_type, commits_per_sample_window, mkdir=False):
     """
-    Determines the output directory where the produced files will be saved.
+    Determines the output directory where the produced files will be saved. The directory structure groups output
+    primarily by data_type (contributions_per_entity or metrics for data), then by ledger, so that all output of a given kind lives together
+    :param ledger: the name of the ledger the output belongs to, or None for output that spans all ledgers
+    (e.g. figures comparing metrics across ledgers)
     :param output_type: either "data" or "figures"
+    :param data_type: "contributions_per_entity" or "metrics" for data; "dynamics" or "metrics" for figures
     :param contribution_type: one of the contribution types from config.yaml (e.g. number_of_commits)
     :param contributor_type: one of the contributor types from config.yaml (e.g. author)
     :param commits_per_sample_window: the number of commits per sample window used in the analysis
-    :param data_type: either "commits_per_contributor" or "metrics"
     :param mkdir: boolean that determines whether the output directory should be created if it does not exist
     :returns: a pathlib.PosixPath object of the output directory
     """
-    output_dir = pathlib.Path(f'output/{output_type}/by_{contribution_type}/per_{contributor_type}/per_{commits_per_sample_window}_commits'
-                              f'/{data_type}')
+    ledger_part = f'{ledger}/' if ledger else ''
+    output_dir = pathlib.Path(f'output/{output_type}/{data_type}/{ledger_part}by_{contribution_type}/per_{contributor_type}'
+                              f'/per_{commits_per_sample_window}_commits')
     if mkdir:
         output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir

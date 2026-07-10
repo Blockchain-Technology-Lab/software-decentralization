@@ -41,7 +41,7 @@ def plot_stack_area_chart(values, execution_id, path, ylabel, legend_labels, tic
     plt.close("all")
 
 
-def plot_contribution_distribution(ledger_repos, data_dir, figures_dir, contribution_type, top_k=-1, unit='relative',
+def plot_contribution_distribution(ledger_repos, contribution_type, contributor_type, commits_per_sample_window, top_k=-1, unit='relative',
                                    legend=False):
     """
     Plots the dynamics for each ledger in terms of commit contribution
@@ -52,9 +52,16 @@ def plot_contribution_distribution(ledger_repos, data_dir, figures_dir, contribu
         number of contributions or share of contributions). It can be one of: absolute, relative
     """
     for ledger in ledger_repos:
-        filename = f"{ledger}_contributions_per_entity.csv"
+        data_dir = hlp.get_output_dir(ledger, output_type='data', data_type='contributions_per_entity',
+                                      contribution_type=contribution_type, contributor_type=contributor_type,
+                                      commits_per_sample_window=commits_per_sample_window)
+        figures_dir = hlp.get_output_dir(ledger, output_type='figures', data_type='contributions_per_entity',
+                                         contribution_type=contribution_type, contributor_type=contributor_type,
+                                         commits_per_sample_window=commits_per_sample_window)
+        figures_dir.mkdir(parents=True, exist_ok=True)
+        filepath = data_dir / 'contributions_per_entity.csv'
         sample_windows, contributions_per_entity = hlp.get_contributions_per_entity_from_file(
-            filepath=data_dir / filename)
+            filepath=filepath)
 
         total_contributions_per_sample_window = [0] * len(sample_windows)
         for entity, contribution_values in contributions_per_entity.items():
@@ -93,7 +100,7 @@ def plot_contribution_distribution(ledger_repos, data_dir, figures_dir, contribu
         #           f"({round(max_values_per_contributor[i], 1)}{'%' if unit == 'relative' else ''})" if any(
         #             values[i] > legend_threshold) else f'_{entity_name}' for i, entity_name in
         #           enumerate(contributions_per_entity.keys())]
-        labels = contributions_per_entity.keys()
+        labels = list(contributions_per_entity.keys())
         if top_k > 0:  # only keep the top k contributors (i.e. the contributors that contributed the most commits in total)
             total_value_per_contributor = values.sum(axis=1)
             top_k_idx = total_value_per_contributor.argpartition(-top_k)[-top_k:]
@@ -108,13 +115,29 @@ def plot_contribution_distribution(ledger_repos, data_dir, figures_dir, contribu
         else:
             # if there is only one time step, plot a doughnut chart
             data_dict = {label: value[0] for label, value in zip(labels, values)}
-            plot_doughnut_chart(data_dict, filepath=figures_dir / f'{ledger}_doughnut_chart.png',
+            plot_doughnut_chart(data_dict, filepath=figures_dir / f'doughnut_chart.png',
                                 title=f'{ledger.title()} - All time {contribution_type} distribution')
 
 
-def plot_comparative_metrics(ledger_repos, metrics, file, figures_dir):
+def plot_comparative_metrics(ledger_repos, metrics, commit_per_sample_window, contributor_type, contribution_type):
     ledgers = list(ledger_repos)
-    metrics_df = pd.read_csv(file, index_col='date')
+    figures_dir = hlp.get_output_dir(ledger=None, output_type='figures', data_type='metrics',
+                                     contribution_type=contribution_type, contributor_type=contributor_type,
+                                        commits_per_sample_window=commit_per_sample_window)
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    metrics_df = pd.DataFrame()
+    for ledger in ledgers:
+        data_dir = hlp.get_output_dir(ledger, output_type='data', data_type='metrics',
+                                      contribution_type=contribution_type, contributor_type=contributor_type,
+                                      commits_per_sample_window=commit_per_sample_window)
+        if not (data_dir / 'metrics.csv').exists():
+            continue
+        ledger_df = pd.read_csv(data_dir / 'metrics.csv', index_col='date')
+        metrics_df = pd.concat([metrics_df, ledger_df], axis=0)
+    
+    if metrics_df.empty:
+        return  # No data to plot
+
     metrics_df.index = pd.to_datetime(metrics_df.index)
     colors = sns.color_palette(cc.glasbey, n_colors=len(ledgers))
     for metric in metrics:
@@ -167,30 +190,10 @@ def plot_doughnut_chart(data_dict, title='', filepath='figures/doughnut_chart.pn
 
 
 def plot(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type):
-    contributions_per_entity_data_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type,
-                                                           contributor_type=contributor_type,
-                                                           commits_per_sample_window=commits_per_sample_window,
-                                                           data_type='contributions_per_entity')
-    metrics_file = hlp.get_output_dir(output_type='data', contribution_type=contribution_type,
-                                      contributor_type=contributor_type,
-                                      commits_per_sample_window=commits_per_sample_window,
-                                      data_type='metrics') / 'all_metrics.csv'
-    dynamics_figures_dir = hlp.get_output_dir(output_type='figures', contribution_type=contribution_type,
-                                              contributor_type=contributor_type,
-                                              commits_per_sample_window=commits_per_sample_window, data_type='dynamics',
-                                              mkdir=True)
-    metrics_figures_dir = hlp.get_output_dir(output_type='figures', contribution_type=contribution_type,
-                                             contributor_type=contributor_type,
-                                             commits_per_sample_window=commits_per_sample_window, data_type='metrics',
-                                             mkdir=True)
-
     logging.info("Plotting commit distributions for each ledger..")
-    plot_contribution_distribution(ledger_repos=ledger_repos, data_dir=contributions_per_entity_data_dir,
-                                   figures_dir=dynamics_figures_dir, legend=False, contribution_type=contribution_type)
+    plot_contribution_distribution(ledger_repos=ledger_repos, contribution_type=contribution_type, commits_per_sample_window=commits_per_sample_window, contributor_type=contributor_type, legend=False,)
     logging.info("Plotting metrics..")
-    if metrics_file.exists():
-        plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, file=metrics_file,
-                                 figures_dir=metrics_figures_dir)
+    plot_comparative_metrics(ledger_repos=ledger_repos, metrics=metrics, commit_per_sample_window=commits_per_sample_window, contributor_type=contributor_type, contribution_type=contribution_type)
 
 
 if __name__ == '__main__':

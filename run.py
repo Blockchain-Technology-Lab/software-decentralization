@@ -9,8 +9,9 @@ from mapping import get_contributor_names_from_file, update_contributor_names
 
 
 def aggregate(ledger, repos, commits_per_sample_window, contributor_type, contribution_type):
-    output_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type, contributor_type=contributor_type,
-                                    commits_per_sample_window=commits_per_sample_window, data_type='contributions_per_entity', mkdir=True)
+    output_dir = hlp.get_output_dir(ledger, output_type='data', data_type='contributions_per_entity',
+                                    contribution_type=contribution_type, contributor_type=contributor_type,
+                                    commits_per_sample_window=commits_per_sample_window, mkdir=True)
 
     contributor_names_by_email = get_contributor_names_from_file()
     # merge the commits of all repos of the ledger into a single chronological history, excluding bot commits
@@ -36,8 +37,7 @@ def aggregate(ledger, repos, commits_per_sample_window, contributor_type, contri
             contributions.pop(sample_window_idx, None)
     mean_timestamps = {idx: pd.to_datetime(timestamps).mean().date() for idx, timestamps in
                        sample_window_timestamps.items()}
-    filename = f'{ledger}_contributions_per_entity.csv'
-    hlp.write_contributions_per_entity_to_file(contributions_per_entity, mean_timestamps, output_dir / filename)
+    hlp.write_contributions_per_entity_to_file(contributions_per_entity, mean_timestamps, output_dir / 'contributions_per_entity.csv')
 
 
 def get_contribution_from_commit(commit, contribution_type):
@@ -57,8 +57,8 @@ def get_contribution_from_commit(commit, contribution_type):
 
 def run_metrics(ledger_repos, metrics, commits_per_sample_window, contributor_type, contribution_type):
     """
-    Calculates metrics for the distribution in each sample window.
-    Saves the results in a csv file in the 'output' directory.
+    Calculates metrics for the distribution in each sample window, for each ledger.
+    Saves the results in a metrics.csv file under each ledger's own output directory.
     :param ledger_repos: dictionary with ledger names as keys and lists of repository names as values
     :param metrics: list of metric names
     :param commits_per_sample_window: int that represents the number of commits per sample window (or None)
@@ -67,41 +67,36 @@ def run_metrics(ledger_repos, metrics, commits_per_sample_window, contributor_ty
     merge_commits, lines_added, lines_deleted, or lines_changed)
     """
     logging.info('Calculating metrics...')
-    contributions_per_entity_data_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type,
-                                                           contributor_type=contributor_type, commits_per_sample_window=commits_per_sample_window,
-                                                           data_type='contributions_per_entity')
-    metrics_data_dir = hlp.get_output_dir(output_type='data', contribution_type=contribution_type,
-                                          contributor_type=contributor_type, commits_per_sample_window=commits_per_sample_window,
-                                          data_type='metrics', mkdir=True)
-
-    metric_dfs = {metric: pd.DataFrame() for metric in metrics}
-    all_metrics_rows = []
     for ledger in ledger_repos:
+        contributions_per_entity_data_dir = hlp.get_output_dir(ledger, output_type='data', data_type='contributions_per_entity',
+                                                                contribution_type=contribution_type,
+                                                                contributor_type=contributor_type,
+                                                                commits_per_sample_window=commits_per_sample_window)
         sample_windows, contributions_per_entity = hlp.get_contributions_per_entity_from_file(
-            contributions_per_entity_data_dir / f'{ledger}_contributions_per_entity.csv')
-        if len(sample_windows) > 1:
-            sample_window_results = defaultdict(list)
-            for metric in metrics:
-                metric_ledger_results = {}
-                for sample_window_id in range(len(sample_windows)):
-                    sample_contributions_per_entity = {}
-                    for entity, contribution_values in contributions_per_entity.items():
-                        sample_contributions_per_entity[entity] = contribution_values[sample_window_id]
-                    # Remove entities with no commits in the sample window
-                    sample_contributions_per_entity = {k: v for k, v in sample_contributions_per_entity.items() if
-                                                       v > 0}
-                    sorted_sample_commits = sorted(sample_contributions_per_entity.values(), reverse=True)
-                    func = eval(f'compute_{metric}')
-                    metric_ledger_results[sample_window_id] = func(sorted_sample_commits)
-                    sample_window_results[sample_window_id].append(metric_ledger_results[sample_window_id])
+            contributions_per_entity_data_dir / 'contributions_per_entity.csv')
+        if len(sample_windows) <= 1:
+            continue
 
-                metric_df_ledger = pd.DataFrame.from_dict(metric_ledger_results, orient='index', columns=[ledger])
-                metric_dfs[metric] = metric_dfs[metric].join(metric_df_ledger, how='outer')
-            all_metrics_rows.extend([[ledger, sample_windows[sample_window_id]] + results for sample_window_id, results in
-                                     sample_window_results.items()])
-    if all_metrics_rows:
-        all_metrics_df = pd.DataFrame(all_metrics_rows, columns=['ledger', 'date'] + metrics)
-        all_metrics_df.to_csv(metrics_data_dir / 'all_metrics.csv', index=False, date_format='%Y%m%d')
+        metrics_rows = []
+        for sample_window_id in range(len(sample_windows)):
+            sample_contributions_per_entity = {}
+            for entity, contribution_values in contributions_per_entity.items():
+                sample_contributions_per_entity[entity] = contribution_values[sample_window_id]
+            # Remove entities with no commits in the sample window
+            sample_contributions_per_entity = {k: v for k, v in sample_contributions_per_entity.items() if v > 0}
+            sorted_sample_commits = sorted(sample_contributions_per_entity.values(), reverse=True)
+            row = [ledger, sample_windows[sample_window_id]]
+            for metric in metrics:
+                func = eval(f'compute_{metric}')
+                row.append(func(sorted_sample_commits))
+            metrics_rows.append(row)
+
+        metrics_data_dir = hlp.get_output_dir(ledger, output_type='data', data_type='metrics',
+                                              contribution_type=contribution_type,
+                                              contributor_type=contributor_type,
+                                              commits_per_sample_window=commits_per_sample_window, mkdir=True)
+        metrics_df = pd.DataFrame(metrics_rows, columns=['ledger', 'date'] + metrics)
+        metrics_df.to_csv(metrics_data_dir / 'metrics.csv', index=False, date_format='%Y%m%d')
 
 
 if __name__ == '__main__':
